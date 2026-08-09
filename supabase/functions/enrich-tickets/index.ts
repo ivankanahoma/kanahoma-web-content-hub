@@ -230,7 +230,7 @@ async function callModel(thread: string, apiKey: string, retryFor: string[] = []
   const body = await res.json();
   const block = body.content?.find((b: { type: string }) => b.type === "tool_use");
   if (!block) throw new Error("Model returned no tool_use block");
-  return block.input as Record<string, unknown>;
+  return { input: block.input as Record<string, unknown>, usage: body.usage };
 }
 
 /**
@@ -238,16 +238,30 @@ async function callModel(thread: string, apiKey: string, retryFor: string[] = []
  * bottom tier as though it had been assessed. Retry once, then fail loudly.
  */
 async function analyse(thread: string, apiKey: string) {
+  // Usage accumulates across the retry, so a ticket that needed two calls reports what
+  // it actually cost rather than only the successful attempt.
   const first = await callModel(thread, apiKey);
-  const missing = missingFields(first);
+  const missing = missingFields(first.input);
   if (!missing.length) return first;
 
   const second = await callModel(thread, apiKey, missing);
-  const stillMissing = missingFields(second);
+  const stillMissing = missingFields(second.input);
   if (stillMissing.length) {
     throw new Error(`Model omitted required fields twice: ${stillMissing.join(", ")}`);
   }
-  return second;
+  return {
+    input: second.input,
+    usage: {
+      input_tokens: (first.usage?.input_tokens ?? 0) + (second.usage?.input_tokens ?? 0),
+      output_tokens: (first.usage?.output_tokens ?? 0) + (second.usage?.output_tokens ?? 0),
+      cache_read_input_tokens:
+        (first.usage?.cache_read_input_tokens ?? 0) +
+        (second.usage?.cache_read_input_tokens ?? 0),
+      cache_creation_input_tokens:
+        (first.usage?.cache_creation_input_tokens ?? 0) +
+        (second.usage?.cache_creation_input_tokens ?? 0),
+    },
+  };
 }
 
 async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>) {
@@ -303,7 +317,17 @@ Deno.serve(async () => {
   await mapLimit(batch, CONCURRENCY, async ({ ticket, comments, hash }) => {
     try {
       const thread = renderThread(ticket, comments, client!.timezone);
-      const a = await analyse(thread, apiKey);
+      const { input: a, usage } = await analyse(thread, apiKey);
+
+      await db.from("ai_usage").insert({
+        job: "enrich-tickets",
+        ticket_id: ticket.id,
+        model: MODEL,
+        input_tokens: usage?.input_tokens ?? 0,
+        output_tokens: usage?.output_tokens ?? 0,
+        cache_read_tokens: usage?.cache_read_input_tokens ?? 0,
+        cache_creation_tokens: usage?.cache_creation_input_tokens ?? 0,
+      });
 
       // Store the model's verdict untouched. Ivan's optional keyword rules are applied
       // at read time by the ticket_queue view, so they never overwrite this.

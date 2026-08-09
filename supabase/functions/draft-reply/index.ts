@@ -125,6 +125,16 @@ Deno.serve(async (req) => {
 
   if (!body) return Response.json({ error: "empty draft" }, { status: 502 });
 
+  await db.from("ai_usage").insert({
+    job: "draft-reply",
+    ticket_id: ticketId,
+    model: MODEL,
+    input_tokens: payload.usage?.input_tokens ?? 0,
+    output_tokens: payload.usage?.output_tokens ?? 0,
+    cache_read_tokens: payload.usage?.cache_read_input_tokens ?? 0,
+    cache_creation_tokens: payload.usage?.cache_creation_input_tokens ?? 0,
+  });
+
   const contentHash = await sha256(
     ticket.subject + " " + (comments ?? []).map((c) => c.id + c.body).join(" "),
   );
