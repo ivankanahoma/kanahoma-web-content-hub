@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ExternalLink, Star, Trash2 } from "lucide-react";
+import { ExternalLink, Star, Trash2, UserCheck } from "lucide-react";
 import { zendeskUrl } from "../lib/queue";
 import { formatDate } from "../lib/format";
 
@@ -17,6 +17,10 @@ export function RecentlyResolved({ rows, subdomain }) {
           <span className="id">#{r.id}</span>
           <span className="grow">{r.subject || "(no subject)"}</span>
           <span className="muted">{r.requester_name}</span>
+          <span className="pill">
+            <UserCheck size={12} strokeWidth={2} />
+            {r.assignee_name ?? "unassigned"}
+          </span>
           <span className="muted">{formatDate(r.solved_at)}</span>
           <a href={zendeskUrl(subdomain, r.id)} target="_blank" rel="noreferrer noopener">
             <ExternalLink size={14} />

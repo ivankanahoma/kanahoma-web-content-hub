@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Document-relative on purpose. %BASE_URL% is applied twice by the dev server
+         (once by the placeholder, once by its rewrite of root-relative hrefs), which
+         yields /base/base/favicon.png locally while the build stays correct. A
+         document-relative path resolves the same in both, and the app has no router,
+         so there are no deep paths for it to resolve against. -->
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <meta name="theme-color" content="#2f4936" />
     <title>Web Content Hub — Kanahoma</title>
   </head>
   <body>

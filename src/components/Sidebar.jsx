@@ -1,13 +1,17 @@
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { SECTIONS, parentOf } from "../lib/sections";
 
-function NavItem({ section, active, onSelect, collapsed, counts, child }) {
+function NavItem({ section, active, onSelect, collapsed, counts, child, hasActiveChild }) {
   const Icon = section.icon;
   const count = section.countKey ? counts?.[section.countKey] : null;
 
   return (
     <button
-      className={`nav-item ${child ? "child" : ""}`}
+      className={[
+        "nav-item",
+        child ? "child" : "",
+        hasActiveChild ? "has-active-child" : "",
+      ].filter(Boolean).join(" ")}
       // The label is hidden while collapsed, so name the button explicitly rather than
       // leaving assistive tech with just an icon.
       aria-label={section.label}
@@ -40,6 +44,7 @@ export default function Sidebar({ active, onSelect, collapsed, onToggle, counts 
                 onSelect={onSelect}
                 collapsed={collapsed}
                 counts={counts}
+                hasActiveChild={activeParent === section.id}
               />
               {section.children && showChildren && (
                 <ul className="nav-children">

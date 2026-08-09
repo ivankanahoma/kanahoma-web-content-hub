@@ -87,9 +87,9 @@ a { color: var(--k-green-700); }
 .sidebar > ul { flex: 1; }
 .sidebar li { margin-bottom: 2px; }
 
-.nav-children {
-  margin: 2px 0 6px 16px;
-  padding-left: 10px;
+.sidebar ul.nav-children {
+  margin: 1px 0 8px 21px;
+  padding-left: 12px;
   border-left: 1px solid var(--k-border);
 }
 
@@ -113,7 +113,18 @@ a { color: var(--k-green-700); }
   color: var(--k-white);
   font-weight: 600;
 }
-.nav-item.child { padding: 5px 9px; font-size: 13px; }
+.nav-item.child {
+  padding: 4px 8px;
+  font-size: 12.5px;
+  gap: 8px;
+  color: var(--k-green-300);
+}
+.nav-item.child:hover { color: var(--k-text); }
+.nav-item.child[aria-current="page"] {
+  background: var(--k-green-100);
+  color: var(--k-green-700);
+}
+.nav-item.child .nav-count { font-size: 10.5px; }
 .nav-item svg { flex: 0 0 auto; }
 
 .nav-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
@@ -557,3 +568,10 @@ a { color: var(--k-green-700); }
 }
 
 .inline-error { color: var(--k-overdue); font-size: 13px; margin: 10px 0 0; }
+
+/* A parent whose child is active: still clearly the section you are inside, without
+   competing with the child that actually holds focus. */
+.nav-item.has-active-child {
+  color: var(--k-green-700);
+  font-weight: 600;
+}
