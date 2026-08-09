@@ -698,3 +698,87 @@ a { color: var(--k-green-700); }
   border-color: var(--k-green-700);
   color: var(--k-white);
 }
+
+/* ----------------------------------------------------------- documentation */
+
+.docs { display: flex; gap: 28px; align-items: flex-start; padding: 18px 0 40px; }
+
+.docs-nav {
+  flex: 0 0 auto;
+  width: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  position: sticky;
+  top: 116px;
+}
+.docs-link {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+  color: var(--k-text-muted);
+  font-size: 13px;
+}
+.docs-link:hover { background: var(--k-surface); color: var(--k-text); }
+.docs-link[aria-current="page"] {
+  background: var(--k-surface);
+  border-left-color: var(--k-green-700);
+  color: var(--k-green-700);
+  font-weight: 600;
+}
+
+.docs-body {
+  flex: 1;
+  min-width: 0;
+  max-width: 72ch;
+  background: var(--k-surface);
+  border: 1px solid var(--k-border);
+  border-radius: 8px;
+  padding: 22px 26px 28px;
+}
+.docs-body h2 {
+  margin: 0 0 14px;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  color: var(--k-green-700);
+}
+.docs-body h4 {
+  margin: 24px 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--k-text-muted);
+}
+.docs-body p { margin: 0 0 12px; }
+.docs-body ul { margin: 0 0 12px; padding-left: 20px; }
+.docs-body li { margin-bottom: 5px; }
+.docs-body code {
+  background: var(--k-bg);
+  border: 1px solid var(--k-border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 12.5px;
+}
+
+.doc-table { width: 100%; border-collapse: collapse; margin: 4px 0 16px; }
+.doc-table th {
+  text-align: left;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--k-text-muted);
+  border-bottom: 1px solid var(--k-border);
+  padding: 0 12px 6px 0;
+}
+.doc-table td {
+  border-bottom: 1px solid var(--k-border);
+  padding: 7px 12px 7px 0;
+  font-size: 13px;
+  vertical-align: top;
+}
+.doc-table tr:last-child td { border-bottom: 0; }
+.doc-table td:first-child { font-weight: 600; white-space: nowrap; }

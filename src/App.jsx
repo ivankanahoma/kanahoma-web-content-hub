@@ -8,6 +8,7 @@ import Sidebar from "./components/Sidebar";
 import TicketRow from "./components/TicketRow";
 import StudentWorkers from "./components/StudentWorkers";
 import Leadership from "./components/Leadership";
+import Documentation from "./components/Documentation";
 import AsanaTasks from "./components/AsanaTasks";
 import {
   RecentlyResolved,
@@ -365,6 +366,8 @@ export default function App() {
             {section === "leadership" && (
               <Leadership tickets={tickets} subdomain={subdomain} />
             )}
+
+            {section === "docs" && <Documentation />}
 
             {section === "asana" && <AsanaTasks />}
 

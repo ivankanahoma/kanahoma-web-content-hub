@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   CalendarClock,
   Gauge,
   CheckCircle2,
@@ -79,6 +80,13 @@ export const SECTIONS = [
     blurb:
       "Incomplete tasks assigned to you in Asana, soonest due first. Read only: Asana " +
       "stays the system of record.",
+  },
+  {
+    id: "docs",
+    label: "Documentation",
+    icon: BookOpen,
+    ready: true,
+    blurb: null,
   },
   {
     id: "students",
