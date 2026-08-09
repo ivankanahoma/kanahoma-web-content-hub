@@ -102,11 +102,22 @@ class Zendesk {
  * `system` covers the "You'll receive an ETA shortly" autoresponder (a trigger, so
  * author_id is -1) and the notices Zendesk writes when tickets are merged. Neither is a
  * human reply, so both are excluded from every reply-timing calculation.
+ *
+ * Sides are relative to the ticket, not to the person. Several CUI staff hold an agent
+ * or admin role in Zendesk and still file tickets of their own; on those tickets they
+ * are the requester, and their messages are what we owe an answer to. Deciding by
+ * global role instead flipped such tickets to "waiting on them" while the requester
+ * was in fact waiting on us.
  */
-function authorSide(c: Comment, users: Map<number, ZendeskUser>) {
+function authorSide(
+  c: Comment,
+  users: Map<number, ZendeskUser>,
+  requesterId: number | null,
+) {
   if (c.author_id === SYSTEM_AUTHOR_ID) return "system";
   if (c.via?.channel === "rule") return "system";
   if (c.via?.source?.rel === "merge") return "system";
+  if (requesterId != null && c.author_id === requesterId) return "requester";
   const role = users.get(c.author_id)?.role;
   return role === "agent" || role === "admin" ? "us" : "requester";
 }
@@ -214,7 +225,7 @@ Deno.serve(async () => {
       ticket_id: t.id,
       author_id: c.author_id,
       author_name: userById.get(c.author_id)?.name ?? null,
-      author_side: authorSide(c, userById),
+      author_side: authorSide(c, userById, t.requester_id),
       is_public: c.public,
       body: stripHtml(c.plain_body ?? c.body),
       created_at: c.created_at,
