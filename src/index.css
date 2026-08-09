@@ -578,3 +578,81 @@ a { color: var(--k-green-700); }
   color: var(--k-green-700);
   font-weight: 600;
 }
+
+/* ---------------------------------------------------------------- leadership */
+
+.leadership { padding-bottom: 20px; }
+
+/* Headline numbers, not charts: a KPI row rather than a one-bar chart per metric. */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 10px;
+  margin: 18px 0 4px;
+}
+
+.stat {
+  background: var(--k-surface);
+  border: 1px solid var(--k-border);
+  border-left: 3px solid var(--k-green-300);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+/* State rides on the rule and the label, never on the value itself. */
+.stat.alarm { border-left-color: var(--k-overdue); }
+.stat.alarm .stat-label { color: var(--k-overdue); }
+
+.stat-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--k-text-muted);
+}
+.stat-value {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--k-text);
+  margin-top: 6px;
+}
+.stat-hint { font-size: 11.5px; color: var(--k-text-muted); margin-top: 2px; }
+
+.chart-card {
+  background: var(--k-surface);
+  border: 1px solid var(--k-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 148px 1fr 44px;
+  align-items: center;
+  gap: 12px;
+  /* A 2px surface gap between adjacent fills, so bars never touch, and a row tall
+     enough to be a comfortable hover target rather than a 16px sliver. */
+  padding: 4px 0;
+  min-height: 24px;
+}
+.bar-row:hover .bar-track { outline: 1px solid var(--k-border); }
+.bar-label { font-size: 13px; color: var(--k-text); }
+.bar-track { background: var(--k-bg); border-radius: 4px; height: 16px; overflow: hidden; }
+.bar-fill {
+  display: block;
+  height: 100%;
+  /* Rounded only at the data end; the baseline end stays square and anchored. */
+  border-radius: 0 4px 4px 0;
+  min-width: 2px;
+}
+.bar-value {
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--k-text);
+}

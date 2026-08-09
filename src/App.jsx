@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 import { TIERS, sortQueue } from "./lib/queue";
 import { SECTIONS, SECTION_BY_ID } from "./lib/sections";
@@ -7,6 +7,7 @@ import Clocks from "./components/Clocks";
 import Sidebar from "./components/Sidebar";
 import TicketRow from "./components/TicketRow";
 import StudentWorkers from "./components/StudentWorkers";
+import Leadership from "./components/Leadership";
 import AsanaTasks from "./components/AsanaTasks";
 import {
   RecentlyResolved,
@@ -33,6 +34,7 @@ export default function App() {
   const [error, setError] = useState(null);
 
   const [section, setSection] = useState("queue");
+  const landedRef = useRef(false);
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem(COLLAPSED_KEY) === "1",
   );
@@ -103,6 +105,12 @@ export default function App() {
   }, [session]);
 
   const canEdit = profile?.role === "admin" || profile?.role === "manager";
+
+  useEffect(() => {
+    if (landedRef.current || !profile) return;
+    landedRef.current = true;
+    if (profile.role === "manager") setSection("leadership");
+  }, [profile]);
 
   const toggleVip = useCallback(async (requester) => {
     setBusyId(requester.id);
@@ -337,6 +345,10 @@ export default function App() {
                 onDelete={deleteKeyword}
                 busy={busyId === "keyword"}
               />
+            )}
+
+            {section === "leadership" && (
+              <Leadership tickets={tickets} subdomain={subdomain} />
             )}
 
             {section === "asana" && <AsanaTasks />}

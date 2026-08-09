@@ -1,5 +1,6 @@
 import {
   CalendarClock,
+  Gauge,
   CheckCircle2,
   KanbanSquare,
   ListChecks,
@@ -48,6 +49,15 @@ export const SECTIONS = [
           "and are never sent to the model.",
       },
     ],
+  },
+  {
+    id: "leadership",
+    label: "Leadership",
+    icon: Gauge,
+    ready: true,
+    blurb:
+      "Where the queue stands as a whole: what is critical, what has blown a " +
+      "commitment, and what was answered without ever getting an ETA.",
   },
   {
     id: "keywords",
