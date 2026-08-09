@@ -7,6 +7,7 @@ import Clocks from "./components/Clocks";
 import Sidebar from "./components/Sidebar";
 import TicketRow from "./components/TicketRow";
 import StudentWorkers from "./components/StudentWorkers";
+import AsanaTasks from "./components/AsanaTasks";
 import {
   RecentlyResolved,
   Requesters,
@@ -28,6 +29,7 @@ export default function App() {
   const [spam, setSpam] = useState([]);
   const [requesters, setRequesters] = useState([]);
   const [keywords, setKeywords] = useState([]);
+  const [asanaCount, setAsanaCount] = useState(0);
   const [error, setError] = useState(null);
 
   const [section, setSection] = useState("queue");
@@ -63,7 +65,8 @@ export default function App() {
     let cancelled = false;
 
     (async () => {
-      const [me, clientRow, queue, agents, done, junk, people, rules] = await Promise.all([
+      const [me, clientRow, queue, agents, done, junk, people, rules, asana] =
+        await Promise.all([
         supabase.from("app_users").select("*").eq("id", session.user.id).maybeSingle(),
         supabase.from("clients").select("*").eq("slug", "cui").maybeSingle(),
         supabase.from("ticket_queue").select("*"),
@@ -74,6 +77,7 @@ export default function App() {
         // senders are not offered as people you could flag as VIP.
         supabase.from("requester_directory").select("id, name, email, is_vip"),
         supabase.from("urgency_rules").select("*").order("created_at"),
+        supabase.from("asana_tasks").select("gid"),
       ]);
       if (cancelled) return;
 
@@ -87,6 +91,7 @@ export default function App() {
       setSpam(junk.data ?? []);
       setRequesters(people.data ?? []);
       setKeywords(rules.data ?? []);
+      setAsanaCount(asana.data?.length ?? 0);
       setMyAgentId(
         (agents.data ?? []).find(
           (a) => a.email?.toLowerCase() === session.user.email?.toLowerCase(),
@@ -183,6 +188,7 @@ export default function App() {
     spam: spam.length,
     requesters: requesters.length,
     keywords: keywords.length,
+    asana: asanaCount,
   };
 
   if (session === undefined) return <div className="state">Loading…</div>;
@@ -332,6 +338,8 @@ export default function App() {
                 busy={busyId === "keyword"}
               />
             )}
+
+            {section === "asana" && <AsanaTasks />}
 
             {section === "students" && (
               <StudentWorkers clientId={client?.id} canEdit={canEdit} />

@@ -283,7 +283,9 @@ a { color: var(--k-green-700); }
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   margin-right: 8px;
+  text-decoration: none;
 }
+.ticket-id:hover { color: var(--k-hellbender); text-decoration: underline; }
 
 .ticket-summary {
   margin: 0 0 8px;

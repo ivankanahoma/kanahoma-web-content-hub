@@ -28,6 +28,7 @@ Hard rules, in order of importance:
 4. Acknowledge a deadline the requester gave, without agreeing to it unless the team
    already did.
 5. Two to six sentences unless a list of questions genuinely needs more.
+6. Never use em dashes or en dashes. Use a comma, a full stop, or a colon instead.
 
 Sign off as "Web Team". Return only the message body: no subject line, no preamble
 explaining what you wrote.
@@ -116,7 +117,11 @@ Deno.serve(async (req) => {
   const body = (payload.content ?? [])
     .filter((b: { type: string }) => b.type === "text")
     .map((b: { text: string }) => b.text)
-    .join("\n").trim();
+    .join("\n")
+    // The prompt forbids these, but a slip would land in the clipboard, so strip them
+    // here as well: " word - word " reads the same and matches how the team writes.
+    .replace(/\s*[\u2014\u2013]\s*/g, " - ")
+    .trim();
 
   if (!body) return Response.json({ error: "empty draft" }, { status: 502 });
 

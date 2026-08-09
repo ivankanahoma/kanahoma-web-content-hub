@@ -108,7 +108,17 @@ export default function TicketRow({
       >
         <div className="ticket-main">
           <h3 className="ticket-title">
-            <span className="ticket-id">#{ticket.id}</span>
+            <a
+              className="ticket-id"
+              href={zendeskUrl(subdomain, ticket.id)}
+              target="_blank"
+              rel="noreferrer noopener"
+              // The row toggles on click, so the link has to stop the event reaching it.
+              onClick={(e) => e.stopPropagation()}
+              title="Open in Zendesk"
+            >
+              #{ticket.id}
+            </a>
             {ticket.subject || "(no subject)"}
           </h3>
 

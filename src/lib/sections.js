@@ -64,8 +64,11 @@ export const SECTIONS = [
     id: "asana",
     label: "Asana",
     icon: KanbanSquare,
-    ready: false,
-    blurb: "Tasks assigned to you, alongside the Zendesk queue.",
+    ready: true,
+    countKey: "asana",
+    blurb:
+      "Incomplete tasks assigned to you in Asana, soonest due first. Read only: Asana " +
+      "stays the system of record.",
   },
   {
     id: "students",
