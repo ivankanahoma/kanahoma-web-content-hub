@@ -1,0 +1,23 @@
+{
+  "name": "kanahoma-web-content-hub",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Web content work queue across Kanahoma clients, starting with Concordia University Irvine",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.451.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.2",
+    "vite": "^5.4.8"
+  }
+}

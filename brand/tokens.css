@@ -1,0 +1,32 @@
+/* Kanahoma brand tokens — extracted from the official logo/icon assets in ./logos and ./icons */
+
+:root {
+  /* Core palette */
+  --k-green: #2f4936;          /* primary — wordmark, headings, chrome */
+  --k-hellbender: #c96e43;     /* accent — numbers, emphasis, warnings */
+  --k-golden-hour: #d9ab4d;    /* secondary accent */
+  --k-cream: #f6f2ee;          /* page background (Stoddard Cream) */
+  --k-white: #ffffff;
+
+  /* Derived neutrals (tints/shades of --k-green, not new hues) */
+  --k-green-900: #1c2c20;
+  --k-green-700: #2f4936;
+  --k-green-500: #547059;
+  --k-green-300: #97a49b;
+  --k-green-100: #d9dfda;
+
+  /* Surfaces */
+  --k-bg: var(--k-cream);
+  --k-surface: var(--k-white);
+  --k-border: var(--k-green-100);
+  --k-text: var(--k-green-900);
+  --k-text-muted: var(--k-green-500);
+
+  /* Semantic — urgency scale. Reds are NOT in the brand palette, so the
+     escalation runs green -> golden hour -> hellbender -> deep hellbender. */
+  --k-urgency-low: var(--k-green-500);
+  --k-urgency-normal: var(--k-green-700);
+  --k-urgency-high: var(--k-golden-hour);
+  --k-urgency-critical: var(--k-hellbender);
+  --k-overdue: #a2482a; /* darkened hellbender, for breached deadlines only */
+}

@@ -1,0 +1,154 @@
+# Kanahoma Web Content Hub
+
+Internal work queue for Kanahoma's web content management service. Multi-client from day
+one; Concordia University Irvine (CUI) is the first and currently only client.
+
+The hub answers one question: **what should I work on next, and what have I already
+promised?** It is not a ticketing system and not an analytics tool. Zendesk stays the
+system of record and Zendesk Analytics keeps the historical reporting.
+
+## Architecture
+
+GitHub Pages serves static files only, so nothing that needs a secret can run in the
+browser. Everything that touches an API key runs in Supabase:
+
+```
+Zendesk ──► sync-zendesk ──┐
+                           ├──► Postgres ──► React SPA (read only)
+Anthropic ─► enrich-tickets┘         ▲
+            draft-reply              └── pg_cron drives both on a schedule
+```
+
+- **Edge Functions** (Deno) hold every credential. The front end never sees one.
+- **pg_cron + pg_net** invoke the functions. `sync-zendesk` every 10 minutes,
+  `enrich-tickets` five minutes behind it so it always reads fresh threads.
+- **The SPA only reads.** Its writes are limited to hub-side judgements: VIP flags,
+  manual ETAs, keyword rules, schedules.
+
+### Why the front end cannot own the ingest
+
+Zendesk blocks browser CORS, the Anthropic key would ship in the bundle, and the
+check-in monitor has to run whether or not anyone has the tab open.
+
+## Stack
+
+- Vite + React 18, no router. Section state lives in `App.jsx`, which keeps GitHub Pages
+  subpath hosting trivial.
+- `@supabase/supabase-js` for auth and reads. `lucide-react` for icons.
+- Plain CSS with custom properties (`src/index.css`), brand tokens in
+  `brand/tokens.css`, extracted from the official logo and icon assets in `brand/`.
+- Supabase project `Kanahoma Web Content Hub`, ref `vantaufqxthqmlakaxbi`.
+
+## The queue model
+
+Ranking is the product. Three commitments share one clock — the requester's deadline,
+the ETA we promised, and the first-response SLA — and whichever breaches first wins,
+regardless of type. Ranking by *kind of commitment* instead of *time remaining* is how a
+deadline two days out ends up above an ETA due in two hours.
+
+| Tier | Meaning |
+|---|---|
+| 0 | Critical impact: blocking or misleading a student/prospect on the live site |
+| 1 | Breached: a deadline or an ETA already passed |
+| 2 | Due within 72h, sorted by hours remaining |
+| 3 | VIP requester waiting on us |
+| 4 | Tone urgency: the model reads the requester as pressed |
+| 5 | Has a deadline further out |
+| 6 | Everything else, by how long it has waited |
+| 7 | Waiting on the requester — never urgent, always last |
+
+Tier is computed in the `ticket_queue` view; the ordering *inside* a tier is
+`src/lib/queue.js -> sortQueue`.
+
+### Stalled tickets
+
+Silence alone never means "close". Once the requester has been quiet for three business
+days, what the ticket needs depends on what our last message was doing
+(`ticket_insights.last_agent_message_kind`):
+
+- `delivery` → **close_candidate**. We delivered and asked for confirmation.
+- `question` with one unanswered message from us → **follow_up**. Chase it.
+- `question` with two or more, and critical → **flag_george** (George Allen III).
+- `question` with two or more, not critical → **close_candidate**.
+
+## Database
+
+Schema lives in `supabase/migrations/`, applied in filename order. Key tables:
+
+- `clients` — one row per client. Timezone and EOD hour drive all business-hour maths.
+- `tickets`, `ticket_comments` — mirror of the **unsolved** Web Team queue only, plus a
+  7-day grace window after a ticket is solved. Derived reply state
+  (`first_agent_reply_at`, `last_reply_by`, `trailing_agent_messages`) is computed at
+  ingest so the UI never scans comments.
+- `ticket_insights` — one row per ticket, replaced when `content_hash` changes.
+  **`ai_critical_impact` holds the model's own verdict, untouched.** Keyword rules layer
+  on top at read time; they never overwrite it.
+- `ticket_etas` — append-only history of every date we promised. Latest wins.
+- `urgency_rules` — optional keyword overrides, evaluated by the view, so editing one
+  re-ranks the queue instantly with no re-analysis and no tokens.
+- `allowed_requester_domains` — anything outside the list is spam: excluded from the
+  queue and never sent to the model.
+- `student_workers`, `work_shifts`, `time_off`, `check_events` — scheduling and the
+  check-in record.
+
+### Views
+
+`ticket_queue` (the ranked queue), `recently_resolved`, `spam_tickets`,
+`enrichable_tickets`, `requester_directory`, `ticket_spam_status`.
+
+**Every view is `security_invoker = true`.** Postgres views otherwise run as their owner
+and read straight past RLS, which would expose the whole queue to an anonymous visitor.
+
+### RLS
+
+Three roles in `app_users`: `admin` (Ivan), `manager` (Matt — can curate VIPs, ETAs,
+keyword rules, schedules, but nothing structural), `viewer`. A new sign-up lands as
+`viewer` via the `on_auth_user_created` trigger; promotion is deliberate. Edge Functions
+use the service role and bypass RLS entirely.
+
+## Zendesk specifics, learned from the live instance
+
+- **The autoresponder is deterministic.** `author_id = -1`, `via.channel = "rule"`, from
+  the trigger *"Web Team - Ticket Receipt Rebuild Content Freeze"*. Its text promises the
+  requester an ETA, which is why ETA tracking matters. `via.source.rel = "merge"` marks
+  ticket-merge notices. Both are `author_side = 'system'` and are excluded from every
+  reply-timing calculation and from the model's context.
+- **No structured field is usable.** Across the open queue, `priority` is empty on
+  ~90%, `due_at` on 100%, and every custom field (Project, Delayed By, Minutes Worked) on
+  100%. All signal lives in free text. The hub does not mirror dead fields.
+- Comparing `updated_at` needs `Date.getTime()`, not string equality: Postgres renders
+  `+00:00` where Zendesk sends `Z`.
+
+## Dates
+
+Timestamps render in the client's timezone. **Date-only values must not be.**
+`new Date("2026-09-07")` parses as UTC midnight and renders as the 6th anywhere behind
+UTC, so `formatDate` detects `YYYY-MM-DD` and formats it as written. Getting this wrong
+shows every ETA and deadline a day early, silently.
+
+## Environment
+
+`.env` is gitignored; `.env.example` documents it. `VITE_*` values are public by design —
+the publishable key only permits what RLS allows. Zendesk and Anthropic credentials live
+**only** as Supabase Edge Function secrets, never in `.env` for production use:
+
+- `ZENDESK_EMAIL`, `ZENDESK_TOKEN`, `ANTHROPIC_API_KEY`
+
+## Commands
+
+```bash
+npm install
+npm run dev                              # http://localhost:5175
+npm run build
+
+python3 scripts/probe_zendesk.py         # read-only API probe, dumps to data/
+./scripts/deploy-function.sh sync-zendesk
+```
+
+## Not built yet
+
+- **Slack.** The check-in / check-out channel is in CUI's *eagles* workspace, not
+  Kanahoma's. Reading it needs an app installed there. Alerts and the check-in monitor are
+  blocked on that.
+- **Asana**, and email intake via Microsoft Graph (Outlook), scoped to one label rather
+  than the whole mailbox.
