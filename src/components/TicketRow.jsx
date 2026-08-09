@@ -3,7 +3,6 @@ import {
   Clock,
   Copy,
   ExternalLink,
-  PauseCircle,
   Sparkles,
   User,
   UserCheck,
@@ -125,6 +124,19 @@ export default function TicketRow({
           {ticket.summary && <p className="ticket-summary">{ticket.summary}</p>}
 
           <div className="ticket-facts">
+            {/* First in the row and the only solid dark chip, because "can I act on
+                this right now?" is the question being scanned for. */}
+            {waitingOnUs ? (
+              <span className="waiting on-us">Waiting on us</span>
+            ) : (
+              <span className="waiting on-them">
+                Waiting on them
+                <span className="waiting-detail">
+                  quiet {ticket.business_days_since_last_comment}d
+                </span>
+              </span>
+            )}
+
             {ticket.critical_impact && <span className="tag critical">Critical</span>}
             {ticket.is_vip && <span className="tag vip">VIP</span>}
             {stalled && (
@@ -151,14 +163,6 @@ export default function TicketRow({
 
             <Pill icon={User}>{ticket.requester_name || "unknown"}</Pill>
             <Pill icon={Clock}>{pluralDays(ticket.age_days)} old</Pill>
-
-            {waitingOnUs ? (
-              <Pill tone="on-us">waiting on us</Pill>
-            ) : (
-              <Pill icon={PauseCircle} tone="on-them">
-                quiet {ticket.business_days_since_last_comment}d · waiting on them
-              </Pill>
-            )}
 
             {ticket.assignee_name && (
               <Pill icon={UserCheck} tone="assignee">{ticket.assignee_name}</Pill>

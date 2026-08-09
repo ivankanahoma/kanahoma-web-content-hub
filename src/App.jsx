@@ -40,7 +40,8 @@ export default function App() {
   );
   const [search, setSearch] = useState("");
   const [mineOnly, setMineOnly] = useState(false);
-  const [queueFilter, setQueueFilter] = useState(null); // null | overdue | waiting
+  const [overdueOnly, setOverdueOnly] = useState(false);
+  const [waitingFilter, setWaitingFilter] = useState(null); // null | us | them
   const [expandedId, setExpandedId] = useState(null);
   const [myAgentId, setMyAgentId] = useState(null);
   const [busyId, setBusyId] = useState(null);
@@ -161,8 +162,9 @@ export default function App() {
 
     return sortQueue(
       tickets.filter((t) => {
-        if (queueFilter === "overdue" && !isOverdue(t)) return false;
-        if (queueFilter === "waiting" && !isWaitingOnThem(t)) return false;
+        if (overdueOnly && !isOverdue(t)) return false;
+        if (waitingFilter === "us" && t.waiting_on !== "us") return false;
+        if (waitingFilter === "them" && t.waiting_on !== "requester") return false;
         // Guard on myAgentId: without it, String(null) === String(null) would make
         // "assigned to me" quietly mean "unassigned".
         if (mineOnly && (myAgentId == null || String(t.assignee_id) !== String(myAgentId)))
@@ -173,7 +175,7 @@ export default function App() {
           .some((field) => field.toLowerCase().includes(term));
       }),
     );
-  }, [tickets, search, mineOnly, queueFilter, myAgentId]);
+  }, [tickets, search, mineOnly, overdueOnly, waitingFilter, myAgentId]);
 
   const grouped = useMemo(() => {
     const byTier = new Map();
@@ -185,7 +187,8 @@ export default function App() {
   }, [visible]);
 
   const overdueCount = tickets?.filter(isOverdue).length ?? 0;
-  const waitingCount = tickets?.filter(isWaitingOnThem).length ?? 0;
+  const onThemCount = tickets?.filter(isWaitingOnThem).length ?? 0;
+  const onUsCount = tickets?.filter((t) => t.waiting_on === "us").length ?? 0;
   const mineCount = myAgentId == null
     ? 0
     : tickets?.filter((t) => String(t.assignee_id) === String(myAgentId)).length ?? 0;
@@ -205,8 +208,9 @@ export default function App() {
   const current = SECTION_BY_ID[section];
   const subdomain = client?.zendesk_subdomain ?? "cuiwebteam";
 
-  /** Only one of the two queue filters can be on: they answer different questions. */
-  const toggleFilter = (name) => setQueueFilter((v) => (v === name ? null : name));
+  /** The two waiting states are exclusive of each other, but independent of Overdue. */
+  const toggleWaiting = (which) =>
+    setWaitingFilter((v) => (v === which ? null : which));
 
   return (
     <div className="app">
@@ -249,18 +253,29 @@ export default function App() {
               />
               <button
                 className="chip danger"
-                aria-pressed={queueFilter === "overdue"}
-                onClick={() => toggleFilter("overdue")}
+                aria-pressed={overdueOnly}
+                onClick={() => setOverdueOnly((v) => !v)}
               >
                 Overdue <span className="count">{overdueCount}</span>
               </button>
-              <button
-                className="chip"
-                aria-pressed={queueFilter === "waiting"}
-                onClick={() => toggleFilter("waiting")}
-              >
-                Waiting on requester <span className="count">{waitingCount}</span>
-              </button>
+              <span className="chip-pair">
+                <button
+                  className="chip solid"
+                  aria-pressed={waitingFilter === "us"}
+                  onClick={() => toggleWaiting("us")}
+                  title="Tickets we can act on right now"
+                >
+                  Waiting on us <span className="count">{onUsCount}</span>
+                </button>
+                <button
+                  className="chip"
+                  aria-pressed={waitingFilter === "them"}
+                  onClick={() => toggleWaiting("them")}
+                  title="Blocked on the requester"
+                >
+                  Waiting on them <span className="count">{onThemCount}</span>
+                </button>
+              </span>
               <button
                 className="chip"
                 aria-pressed={mineOnly}

@@ -656,3 +656,45 @@ a { color: var(--k-green-700); }
   font-variant-numeric: tabular-nums;
   color: var(--k-text);
 }
+
+/* ------------------------------------------------------- waiting-on marker */
+
+/* The single most-scanned fact on a row: can I act on this, or am I blocked? The two
+   states are deliberately asymmetric rather than two colours of the same chip —
+   actionable is solid and dark, blocked recedes to an outline the eye skips. */
+.waiting {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.waiting.on-us {
+  background: var(--k-green-700);
+  color: var(--k-white);
+}
+.waiting.on-them {
+  background: transparent;
+  color: var(--k-text-muted);
+  border: 1px dashed var(--k-green-300);
+  font-weight: 600;
+}
+.waiting-detail {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* The two waiting filters are one control with two states, so they sit together. */
+.chip-pair { display: inline-flex; gap: 4px; }
+.chip.solid[aria-pressed="true"] {
+  background: var(--k-green-700);
+  border-color: var(--k-green-700);
+  color: var(--k-white);
+}
