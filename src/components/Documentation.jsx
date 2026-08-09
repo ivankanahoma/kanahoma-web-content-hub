@@ -105,20 +105,43 @@ const TOPICS = [
 
         <h4>When the requester goes quiet</h4>
         <p>
-          After three business days of silence, the hub says what the ticket needs, based
-          on what our last message was doing:
+          After <strong>five business days</strong> of silence, the hub suggests what the
+          ticket needs. Five rather than three: at CUI's cadence, three days is still
+          "they were busy". What it suggests depends entirely on what our last message
+          was doing.
         </p>
         <table className="doc-table">
           <thead><tr><th>Our last message</th><th>What it needs</th></tr></thead>
           <tbody>
-            <tr><td>Delivered the work, asked them to confirm</td><td><strong>Can close</strong></td></tr>
+            <tr><td>Delivered the work, asked them to confirm</td><td><strong>Can close</strong> — silence reads as acceptance</td></tr>
             <tr><td>Asked a question, chased once</td><td><strong>Follow up</strong></td></tr>
-            <tr><td>Asked a question, already chased twice, and critical</td><td><strong>Flag George</strong></td></tr>
+            <tr><td>Asked a question, already chased twice</td><td><strong>Can close</strong>, or <strong>Flag George</strong> if it is critical</td></tr>
+            <tr><td>Promised work, or gave a date</td><td>Nothing — see below</td></tr>
+            <tr><td>Anything else</td><td>Nothing — no evidence either way</td></tr>
           </tbody>
         </table>
+
+        <h4>Why a promise is not a delivery</h4>
         <p>
-          Silence alone never means "close". A ticket sitting on an unanswered question of
-          ours is not finished, it is waiting on a nudge.
+          "The updates have been made, let me know if everything looks good" and "we
+          should be able to complete this by 8/21" both end with the requester saying
+          nothing. Only the first one means they accepted the work.
+        </p>
+        <p>
+          In the second, <strong>we</strong> owe <strong>them</strong>. They have nothing
+          to reply to, so their silence carries no information at all — and suggesting a
+          close would mean quietly dropping work we committed to, on the tickets least
+          likely to be chased. Those tickets are already tracked by their ETA, which is
+          what puts them in the Overdue tier if the date passes.
+        </p>
+        <p>
+          Two more guards: a <strong>critical</strong> ticket is never proposed for
+          closing, only escalated; and when our last message was neither a delivery, a
+          promise nor a question, the hub stays quiet rather than guessing.
+        </p>
+        <p>
+          Closing is always a suggestion. The hub never writes to Zendesk — you close the
+          ticket yourself.
         </p>
       </>
     ),

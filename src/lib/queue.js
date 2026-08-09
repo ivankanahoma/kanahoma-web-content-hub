@@ -29,15 +29,15 @@ export const TIERS = {
 export const STALLED_ACTIONS = {
   follow_up: {
     label: "Follow up",
-    hint: "We asked a question and never got an answer",
+    hint: "Quiet 5+ business days on a question we asked, or on anything critical",
   },
   close_candidate: {
     label: "Can close",
-    hint: "Delivered or inactive, and quiet for 3+ business days",
+    hint: "Delivered and unconfirmed, or asked twice with no reply, for 5+ business days",
   },
   flag_george: {
     label: "Flag George",
-    hint: "Important, already chased once, still no reply",
+    hint: "Critical, already chased twice, still no reply",
   },
 };
 

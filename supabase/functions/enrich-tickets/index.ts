@@ -84,12 +84,13 @@ const ANALYSIS_TOOL = {
       },
       last_agent_message_kind: {
         type: "string",
-        enum: ["delivery", "question", "other"],
+        enum: ["delivery", "commitment", "question", "other"],
         description:
-          "What OUR most recent public message was doing. delivery = we said the work " +
-          "is done, or asked them to review or confirm it. question = we asked for " +
-          "something we need before we can finish. other = anything else. Omit when we " +
-          "have never posted a public message.",
+          "What OUR most recent public message was doing. delivery = the work is " +
+          "finished and we asked them to review or confirm it. commitment = we said we " +
+          "WILL do it, or named a date, and the work is not done yet. question = we " +
+          "asked for something we need before we can finish. other = anything else. " +
+          "Omit when we have never posted a public message.",
       },
     },
     // Nullable fields are simply omitted when they do not apply, rather than typed as
@@ -139,9 +140,20 @@ a broken application form is tone 0 and critical impact true. Shouting about a t
 tone 3 and critical impact false.
 
 OUR LAST MESSAGE. Classify only the most recent public message from OUR TEAM. This
-decides what a stalled ticket needs: a thread where we delivered work and asked them to
-confirm can be closed out, while a thread where we asked a question we still need answered
-must be chased instead. Internal notes are not messages to the requester; ignore them.
+decides what happens when a ticket goes quiet, so the distinction that matters most is
+whether the requester still owes us something:
+
+  - delivery: the work is FINISHED. "The updates have been made, let me know if
+    everything looks good." Silence after this means tacit acceptance.
+  - commitment: we said we will do it, or named a date, and it is NOT done yet.
+    "We should be able to complete this by 8/21." "We will have the page updated for
+    your review by Monday." The requester has nothing to reply to - they are waiting on
+    us - so silence here means nothing at all. Never label these delivery: the presence
+    of a date or a promise is exactly what separates the two.
+  - question: we asked for something we need before we can finish.
+  - other: anything else.
+
+Internal notes are not messages to the requester; ignore them.
 
 DATES. Resolve everything relative to the date of the comment it appears in, and express
 it as YYYY-MM-DD in America/Los_Angeles. "by Monday" written on a Friday means the
