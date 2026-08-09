@@ -11,8 +11,8 @@ const TOPICS = [
     body: (
       <>
         <p>
-          Every open ticket lands in exactly one tier, and tiers are checked in the order
-          below. The first one that matches wins, so a ticket never appears twice.
+          Every open ticket lands in exactly one tier. The queue renders them top to
+          bottom in this order:
         </p>
 
         <table className="doc-table">
@@ -20,16 +20,40 @@ const TOPICS = [
             <tr><th>Tier</th><th>Meaning</th></tr>
           </thead>
           <tbody>
-            <tr><td>Critical impact</td><td>Blocking or misleading a student or prospect on the live site</td></tr>
-            <tr><td>Waiting on requester</td><td>The ball is with them, so it drops to the bottom — unless it is critical</td></tr>
-            <tr><td>Overdue</td><td>A commitment has already been missed</td></tr>
-            <tr><td>Due within 72h</td><td>A commitment comes due soon</td></tr>
-            <tr><td>VIP waiting</td><td>A flagged requester is waiting on us</td></tr>
-            <tr><td>Sounds urgent</td><td>The model reads the requester as pressed</td></tr>
-            <tr><td>Scheduled</td><td>Has a commitment further out</td></tr>
-            <tr><td>Everything else</td><td>No commitment attached, sorted by how long it has waited</td></tr>
+            <tr><td>1. Critical impact</td><td>Blocking or misleading a student or prospect on the live site</td></tr>
+            <tr><td>2. Overdue</td><td>A commitment has already been missed</td></tr>
+            <tr><td>3. Due within 72h</td><td>A commitment comes due soon</td></tr>
+            <tr><td>4. VIP waiting</td><td>A flagged requester is waiting on us</td></tr>
+            <tr><td>5. Sounds urgent</td><td>The model reads the requester as pressed</td></tr>
+            <tr><td>6. Scheduled</td><td>Has a commitment further out</td></tr>
+            <tr><td>7. Everything else</td><td>No commitment attached, sorted by how long it has waited</td></tr>
+            <tr><td>8. Waiting on requester</td><td>The ball is with them, so it sits at the bottom</td></tr>
           </tbody>
         </table>
+
+        <h4>Two rules decide the tier before the clock does</h4>
+        <p>
+          Tiers 2 to 7 are all about timing, but two conditions are checked first and
+          override them:
+        </p>
+        <ul>
+          <li>
+            <strong>Critical impact wins outright.</strong> A ticket that is breaking
+            something live stays at the top even when we are blocked on the requester —
+            that is not a reason to park it, it is a reason to chase them.
+          </li>
+          <li>
+            <strong>Otherwise, waiting on the requester sends it to the bottom</strong>,
+            even if a date has already passed. An overdue ticket we cannot act on is not
+            work you can pick up, so it does not compete with work you can.
+          </li>
+        </ul>
+        <p>
+          This is the one part of the ordering that surprises people: a ticket can be
+          overdue and still appear last. Filter by <strong>Waiting on them</strong> to see
+          those, or by <strong>Overdue + Waiting on us</strong> for the list you can
+          actually act on today.
+        </p>
 
         <h4>Three commitments, one clock</h4>
         <p>
