@@ -323,6 +323,9 @@ a { color: var(--k-green-700); }
 .tag.critical { background: #f3ddd2; color: #82391d; }
 .tag.warn     { background: #f8ebcf; color: #6f5312; }
 .tag.vip      { background: var(--k-golden-hour); color: #402f06; }
+/* Informational, not an alarm: it says when the request was made, not how urgent it is,
+   so it stays in the brand green rather than joining the red/amber escalation. */
+.tag.prelaunch { background: var(--k-green-100); color: var(--k-green-700); }
 .tag.quiet {
   background: transparent;
   color: var(--k-text-muted);

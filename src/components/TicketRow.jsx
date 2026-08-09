@@ -135,6 +135,14 @@ export default function TicketRow({
                 {stalled.label}
               </span>
             )}
+            {ticket.requested_pre_launch && (
+              <span
+                className="tag prelaunch"
+                title="Filed before cui.edu went live on Aug 5, 2026"
+              >
+                Requested pre-launch
+              </span>
+            )}
             {ticket.complexity && (
               <span className="tag quiet">
                 {COMPLEXITY_LABEL[ticket.complexity]} · {EFFORT_LABEL[ticket.effort]}
