@@ -1,5 +1,5 @@
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { SECTIONS, parentOf } from "../lib/sections";
+import { parentOf, sectionsFor } from "../lib/sections";
 
 function NavItem({ section, active, onSelect, collapsed, counts, child, hasActiveChild }) {
   const Icon = section.icon;
@@ -27,25 +27,48 @@ function NavItem({ section, active, onSelect, collapsed, counts, child, hasActiv
   );
 }
 
-export default function Sidebar({ active, onSelect, collapsed, onToggle, counts }) {
+/**
+ * A grouping label rather than a destination. It carries no count and no aria-current,
+ * because nothing about it can be the current page.
+ */
+function NavHeading({ section, collapsed }) {
+  const Icon = section.icon;
+  return (
+    <div className="nav-item heading" title={collapsed ? section.label : undefined}>
+      <Icon size={17} strokeWidth={1.75} />
+      <span className="nav-label">{section.label}</span>
+    </div>
+  );
+}
+
+export default function Sidebar({ active, onSelect, collapsed, onToggle, counts, role }) {
   const activeParent = parentOf(active);
+  const sections = sectionsFor(role);
 
   return (
     <nav className={`sidebar ${collapsed ? "collapsed" : ""}`} aria-label="Sections">
       <ul>
-        {SECTIONS.map((section) => {
-          const showChildren =
-            !collapsed && (active === section.id || activeParent === section.id);
+        {sections.map((section) => {
+          // A heading cannot be selected, so waiting for it to become active would hide
+          // its children forever. Those are always open.
+          const showChildren = !collapsed &&
+            (section.navigable === false ||
+             active === section.id ||
+             activeParent === section.id);
           return (
             <li key={section.id}>
-              <NavItem
-                section={section}
-                active={active}
-                onSelect={onSelect}
-                collapsed={collapsed}
-                counts={counts}
-                hasActiveChild={activeParent === section.id}
-              />
+              {section.navigable === false ? (
+                <NavHeading section={section} collapsed={collapsed} />
+              ) : (
+                <NavItem
+                  section={section}
+                  active={active}
+                  onSelect={onSelect}
+                  collapsed={collapsed}
+                  counts={counts}
+                  hasActiveChild={activeParent === section.id}
+                />
+              )}
               {section.children && showChildren && (
                 <ul className="nav-children">
                   {section.children.map((childSection) => (

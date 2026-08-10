@@ -24,6 +24,11 @@ export const TIERS = {
   5: { label: "Scheduled", hint: "Has a deadline further out", tone: "normal" },
   6: { label: "Waiting on us", hint: "No deadline attached", tone: "normal" },
   7: { label: "Waiting on requester", hint: "The ball is with them", tone: "muted" },
+  8: {
+    label: "Requested pre-launch",
+    hint: "Filed against the old site, so it ranks last whatever it says",
+    tone: "muted",
+  },
 };
 
 export const STALLED_ACTIONS = {
@@ -55,11 +60,16 @@ export const DUE_KIND_LABEL = {
  * by the kind of commitment is what stops a deadline two days out from outranking an ETA
  * due in two hours. Already-breached items carry negative hours, so the worst offender
  * naturally lands on top.
+ *
+ * `base_tier` breaks ties before the clock does, which only ever matters in the
+ * pre-launch bucket: thirty-odd tickets share tier 8, and without their original tier the
+ * critical and already-breached ones would be scattered through the pile.
  */
 export function sortQueue(rows) {
   return [...rows].sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
     if (a.tier !== b.tier) return a.tier - b.tier;
+    if (a.base_tier !== b.base_tier) return (a.base_tier ?? 9) - (b.base_tier ?? 9);
 
     const aDue = a.hours_to_due;
     const bDue = b.hours_to_due;

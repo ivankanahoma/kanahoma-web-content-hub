@@ -27,27 +27,39 @@ const TOPICS = [
             <tr><td>5. Sounds urgent</td><td>The model reads the requester as pressed</td></tr>
             <tr><td>6. Scheduled</td><td>Has a commitment further out</td></tr>
             <tr><td>7. Everything else</td><td>No commitment attached, sorted by how long it has waited</td></tr>
-            <tr><td>8. Waiting on requester</td><td>The ball is with them, so it sits at the bottom</td></tr>
+            <tr><td>8. Waiting on requester</td><td>The ball is with them, so it sits near the bottom</td></tr>
+            <tr><td>9. Requested pre-launch</td><td>Filed against the old site, so it ranks last whatever it says</td></tr>
           </tbody>
         </table>
 
-        <h4>Two rules decide the tier before the clock does</h4>
+        <h4>Three rules decide the tier before the clock does</h4>
         <p>
-          Tiers 2 to 7 are all about timing, but two conditions are checked first and
-          override them:
+          Tiers 2 to 8 are all about timing, but three conditions are checked first and
+          override them, in this order:
         </p>
         <ul>
           <li>
-            <strong>Critical impact wins outright.</strong> A ticket that is breaking
+            <strong>Pre-launch goes last, without exception.</strong> A ticket filed
+            before cui.edu went live describes a site that no longer exists, so however
+            urgently it reads, it is not what to work on next. This overrides everything,
+            including critical impact.
+          </li>
+          <li>
+            <strong>Then critical impact wins outright.</strong> A ticket that is breaking
             something live stays at the top even when we are blocked on the requester —
             that is not a reason to park it, it is a reason to chase them.
           </li>
           <li>
-            <strong>Otherwise, waiting on the requester sends it to the bottom</strong>,
-            even if a date has already passed. An overdue ticket we cannot act on is not
-            work you can pick up, so it does not compete with work you can.
+            <strong>Otherwise, waiting on the requester sends it down</strong>, even if a
+            date has already passed. An overdue ticket we cannot act on is not work you
+            can pick up, so it does not compete with work you can.
           </li>
         </ul>
+        <p>
+          The pre-launch bucket still sorts internally: inside it, tickets keep the tier
+          they would otherwise have had, so the critical and already-breached ones sit at
+          the top of the pile rather than scattered through it.
+        </p>
         <p>
           This is the one part of the ordering that surprises people: a ticket can be
           overdue and still appear last. Filter by <strong>Waiting on them</strong> to see
@@ -238,7 +250,19 @@ const TOPICS = [
           in the client's own timezone: a ticket filed at 6&nbsp;PM Pacific the day before
           launch is pre-launch, even though it is already the next day in UTC.
         </p>
-        <p>The badge is informational. It says when a request was made, not how urgent it is.</p>
+        <h4>It is the strongest rule in the ranking</h4>
+        <p>
+          A pre-launch ticket drops to its own bucket at the very bottom of the queue,
+          below even the ones waiting on the requester, and nothing outranks it. A
+          pre-launch ticket marked critical impact still goes to the bottom.
+        </p>
+        <p>
+          That is deliberate and it is worth knowing, because it is the one rule that can
+          bury something that reads as urgent. Roughly six in ten open tickets are
+          pre-launch today. If one of them turns out to describe a problem that is still
+          live on the new site, the fix is not to change the ranking: pin it, and it
+          jumps to the top of the queue regardless of tier.
+        </p>
       </>
     ),
   },
@@ -284,6 +308,83 @@ const TOPICS = [
     ),
   },
   {
+    id: "article-generator",
+    title: "The Article Generator",
+    body: (
+      <>
+        <p>
+          Give it a <code>.docx</code>, a markdown file or pasted text, and it returns the
+          Gutenberg block markup for the article body, plus a second file with everything
+          that lives outside the content area.
+        </p>
+
+        <h4>The model never writes the article</h4>
+        <p>
+          This is the part worth understanding, because it is what makes the output
+          trustworthy. The document is parsed <strong>in your browser</strong> into
+          numbered blocks. Only that numbered list is sent to the model, and what comes
+          back is <strong>indices, not prose</strong>: block 0 is the series note, blocks
+          9 to 12 are the author bio, block 3 has a duplicated word.
+        </p>
+        <p>
+          The author's text goes from the parser straight to the renderer without passing
+          through the model. "Never invent content" is not a rule the model is asked to
+          follow here. It is something it has no opportunity to do.
+        </p>
+        <p>
+          The two exceptions are named and visible. The <strong>excerpt</strong> is
+          written, because an excerpt has to be. <strong>Typo fixes</strong> arrive as
+          exact find-and-replace pairs, are applied only when the text matches
+          character for character, and every one is listed in the flags.
+        </p>
+
+        <h4>What it will not do</h4>
+        <ul>
+          <li><strong>Invent headings.</strong> An article with no sections is generated with no sections, and the flags say so.</li>
+          <li><strong>Choose a pull quote.</strong> Only a blockquote the author actually marked becomes one. Picking a sentence to enlarge is an editorial decision, and inventing emphasis breaks the same rule as inventing text.</li>
+          <li><strong>Guess an author's job title.</strong> If the source does not give one, the card has none and the flags say it was not guessed.</li>
+          <li><strong>Invent a media library ID.</strong> The photo is a placeholder URL with no ID, because a wrong ID points at someone else's file and breaks the block.</li>
+        </ul>
+
+        <h4>Where the markup comes from</h4>
+        <p>
+          Every attribute is copied from an article CUI has already approved, not derived
+          from the design system. The generator is tested against that article: the
+          headings, the pull quote and the staff card have to come out matching it, or the
+          build fails.
+        </p>
+        <p>
+          Three things have no precedent in any published article: <strong>lists</strong>,
+          <strong>sub-headings</strong> and the <strong>pull quote</strong>. They are built
+          from valid tokens, but nothing in production proves the theme styles them as
+          expected. When an article uses one, the flags tell you to check it in a draft
+          preview first.
+        </p>
+
+        <h4>Two files, and why the second one matters</h4>
+        <p>
+          The block markup only fills the content area. The excerpt, the SEO fields, the
+          featured image and the template setting all live elsewhere in the WordPress
+          admin, and an article missing them looks broken in the places nobody checks: the
+          archive cards and the news feed. The second file is that checklist, with the
+          values ready to paste.
+        </p>
+        <p>
+          The featured image has to be <strong>1425 x 450</strong> and <code>.webp</code>.
+          That ratio is what the card and archive templates expect; anything else gets
+          cropped unpredictably across the site.
+        </p>
+
+        <h4>Nothing is stored</h4>
+        <p>
+          The file never leaves your machine. The extracted text reaches the model and is
+          not kept. The last ten runs sit in <strong>this browser only</strong>, so they
+          are not shared with anyone and do not survive clearing your browser data.
+        </p>
+      </>
+    ),
+  },
+  {
     id: "access",
     title: "Roles and access",
     body: (
@@ -293,13 +394,34 @@ const TOPICS = [
           <tbody>
             <tr><td>Admin</td><td>Everything, including clients, users and integration settings.</td></tr>
             <tr><td>Manager</td><td>Curate the queue: VIPs, ETAs, keywords, notes, schedules. Nothing structural. Lands on Leadership.</td></tr>
-            <tr><td>Viewer</td><td>Read only.</td></tr>
+            <tr><td>Viewer</td><td>Read only, whole queue.</td></tr>
+            <tr><td>Content editor</td><td>The tickets assigned to them, the tools, and this documentation. Nothing else.</td></tr>
           </tbody>
         </table>
         <p>
           A new sign-up starts as a viewer, which sees nothing until an admin grants a
           role. Access is enforced in the database, not in the interface, so a signed-out
           visitor reads nothing at all even though the site is public.
+        </p>
+
+        <h4>What a content editor cannot see</h4>
+        <p>
+          The role exists for the student workers who execute the edits. It is scoped in
+          the database rather than in the menu: a content editor's own account cannot read
+          a ticket that is not assigned to them, so hiding the sections is a convenience,
+          not the protection.
+        </p>
+        <p>
+          Out of reach: the rest of the queue, the requester directory and its contact
+          details, spam, urgency keywords, Asana, the Leadership view, the schedules, the
+          AI cost record, and the list of hub users. Requesters are visible only where
+          they filed a ticket the editor is working on.
+        </p>
+        <p>
+          A content editor is linked to their Zendesk account explicitly rather than by
+          matching email addresses. Someone signing in to the hub with a different address
+          than Zendesk knows them by would otherwise get a silently empty queue with
+          nothing to explain it.
         </p>
       </>
     ),

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 import { TIERS, sortQueue } from "./lib/queue";
-import { SECTIONS, SECTION_BY_ID } from "./lib/sections";
+import { SECTION_BY_ID, homeSectionFor, sectionsFor } from "./lib/sections";
 import Login from "./components/Login";
 import Clocks from "./components/Clocks";
 import Sidebar from "./components/Sidebar";
@@ -10,6 +10,7 @@ import StudentWorkers from "./components/StudentWorkers";
 import Leadership from "./components/Leadership";
 import Documentation from "./components/Documentation";
 import AsanaTasks from "./components/AsanaTasks";
+import ArticleGenerator from "./components/ArticleGenerator";
 import {
   Requesters,
   SectionIntro,
@@ -110,12 +111,26 @@ export default function App() {
   }, [session]);
 
   const canEdit = profile?.role === "admin" || profile?.role === "manager";
+  const role = profile?.role ?? null;
 
   useEffect(() => {
     if (landedRef.current || !profile) return;
     landedRef.current = true;
-    if (profile.role === "manager") setSection("leadership");
+    setSection(homeSectionFor(profile.role));
   }, [profile]);
+
+  // A role can lose access to whatever it was looking at, and a heading is never a
+  // destination. Either way, land somewhere real instead of rendering a blank page.
+  useEffect(() => {
+    if (!role) return;
+    const reachable = new Set(
+      sectionsFor(role).flatMap((s) => [
+        ...(s.navigable === false ? [] : [s.id]),
+        ...(s.children ?? []).map((c) => c.id),
+      ]),
+    );
+    if (!reachable.has(section)) setSection(homeSectionFor(role));
+  }, [role, section]);
 
   const toggleVip = useCallback(async (requester) => {
     setBusyId(requester.id);
@@ -248,6 +263,7 @@ export default function App() {
           collapsed={collapsed}
           onToggle={() => setCollapsed((v) => !v)}
           counts={counts}
+          role={role}
         />
 
         <div className="content">
@@ -381,6 +397,8 @@ export default function App() {
             {section === "docs" && <Documentation />}
 
             {section === "asana" && <AsanaTasks />}
+
+            {section === "article-generator" && <ArticleGenerator />}
 
             {section === "students" && (
               <StudentWorkers clientId={client?.id} canEdit={canEdit} />

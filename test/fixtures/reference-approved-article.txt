@@ -1,0 +1,157 @@
+<!-- wp:paragraph {"style":{"typography":{"fontStyle":"italic","fontWeight":"400"}}} -->
+<p style="font-style:italic;font-weight:400">This article is part of the series “From AI Skeptic to AI Champion,” which explores how educators can move from fear and uncertainty toward wise, ethical, and human-centered AI adoption.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"kanahomaResp":{"pad":[],"mar":{"desktop":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"mobile":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"tablet":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"}}},"style":{"border":{"radius":"0px","width":"0px","style":"none"},"elements":{"link":{"color":{"text":"var:preset|color|primary"}}},"spacing":{"margin":{"top":"0","bottom":"0"}},"typography":{"fontStyle":"normal","fontWeight":"600","lineHeight":"1.2","letterSpacing":"0%"},"layout":{"selfStretch":"fit","flexSize":null}},"textColor":"primary","fontSize":"large"} -->
+<h2 class="wp-block-heading has-primary-color has-text-color has-link-color has-large-font-size" style="border-style:none;border-width:0px;border-radius:0px;margin-top:0;margin-bottom:0;font-style:normal;font-weight:600;letter-spacing:0%;line-height:1.2">AI Arrives in Education</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Whether you are an educator or administrator, in K-12 or higher education, at a private or public institution, working with children, teens, or adults, artificial intelligence is rapidly reshaping education. More specifically, generative artificial intelligence, or GenAI, is changing how students write, how teachers plan, how schools think about cheating, and how all of us understand the future of learning.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Many have named 2023 the year of generative AI. ChatGPT, as one of the first widely adopted foundational GenAI models, seemed to appear almost overnight. Of course, it did not really appear overnight. Researchers, engineers, computer scientists, and technology companies had been building toward this moment for years. But for most of us in education, it felt sudden.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>One day, AI was something we associated with science fiction, robotics, search engines, or large technology companies. The next day, students could type a question into ChatGPT and receive a poem, essay, lesson summary, quiz answer, study guide, or polished paragraph in seconds.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"kanahomaResp":{"pad":[],"mar":{"desktop":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"mobile":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"tablet":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"}}},"style":{"border":{"radius":"0px","width":"0px","style":"none"},"elements":{"link":{"color":{"text":"var:preset|color|primary"}}},"spacing":{"margin":{"top":"0","bottom":"0"}},"typography":{"fontStyle":"normal","fontWeight":"600","lineHeight":"1.2","letterSpacing":"0%"},"layout":{"selfStretch":"fit","flexSize":null}},"textColor":"primary","fontSize":"large"} -->
+<h2 class="wp-block-heading has-primary-color has-text-color has-link-color has-large-font-size" style="border-style:none;border-width:0px;border-radius:0px;margin-top:0;margin-bottom:0;font-style:normal;font-weight:600;letter-spacing:0%;line-height:1.2">Puppies, Ice Cream, and a Mazda Miata</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>My own introduction to ChatGPT came during Christmas break in 2022. My daughter Emilyne came home from college and sat us down to show us something new on her computer. She asked me for two of my favorite things. I said, “ice cream” and “puppies.” She typed the words into ChatGPT, and it produced a poem about ice cream and puppies.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I was not impressed. I remember thinking, <em>I could probably do the same thing with a Google search: Find me a poem about ice cream and puppies.</em> Then she asked for another word.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>“Mazda Miata,” I said.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>She typed again, and the interface elegantly and creatively added a candy-red Mazda Miata to the poem about ice cream and puppies. Each time I gave a new word, ChatGPT seamlessly folded it into the poem. I asked for a haiku. It gave me a three-line, seventeen-syllable haiku about ice cream, puppies, and a Mazda Miata. I asked for a Shakespearean sonnet. It gave me Elizabethan English.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>My world stopped for a moment. It was like nothing I had ever seen before. I wanted to learn more. At the same time, it was scary smart, and I did not know where this was going to take all of us.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>This happened in December 2022, only a month or so after ChatGPT first broke ground. By January 2023, ChatGPT was estimated to have reached 100 million monthly active users just two months after launch, making it, at the time, the fastest-growing consumer application in history (Hu, 2023). At that point, I had never even heard of ChatGPT. But according to my daughter, all her friends at Berkeley were already using it. The adults were catching up.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I thought to myself, <em>This is going to change everything.</em></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"kanahomaResp":{"pad":[],"mar":{"desktop":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"mobile":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"tablet":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"}}},"style":{"border":{"radius":"0px","width":"0px","style":"none"},"elements":{"link":{"color":{"text":"var:preset|color|primary"}}},"spacing":{"margin":{"top":"0","bottom":"0"}},"typography":{"fontStyle":"normal","fontWeight":"600","lineHeight":"1.2","letterSpacing":"0%"},"layout":{"selfStretch":"fit","flexSize":null}},"textColor":"primary","fontSize":"large"} -->
+<h2 class="wp-block-heading has-primary-color has-text-color has-link-color has-large-font-size" style="border-style:none;border-width:0px;border-radius:0px;margin-top:0;margin-bottom:0;font-style:normal;font-weight:600;letter-spacing:0%;line-height:1.2">Beyond the Classroom</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>The implications now reach far beyond the classroom. In a 2024 study by LinkedIn and Microsoft, researchers found that 66% of surveyed industry leaders said they would not hire someone without AI skills. They also found that 71% of leaders were more likely to hire a less experienced candidate with AI skills than a more experienced candidate without them (LinkedIn &amp; Microsoft, 2024). The World Economic Forum’s <em>Future of Jobs Report 2025</em> similarly projects that 39% of workers’ core skills will change by 2030. The fastest-growing skills are technological, with AI and big data at the top of the list, followed by networks and cybersecurity and technological literacy. But the report also highlights deeply human capacities, including creative thinking, resilience, flexibility, and agility, curiosity and lifelong learning, leadership and social influence, talent management, analytical thinking, and environmental stewardship (World Economic Forum, 2025).</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>This list tells us that the future will not belong merely to those who can use machines. It will belong to those who can think with wisdom, create with imagination, adapt with humility, lead with courage, and continue learning with curiosity.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"kanahomaResp":{"pad":[],"mar":{"desktop":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"mobile":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"tablet":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"}}},"style":{"border":{"radius":"0px","width":"0px","style":"none"},"elements":{"link":{"color":{"text":"var:preset|color|primary"}}},"spacing":{"margin":{"top":"0","bottom":"0"}},"typography":{"fontStyle":"normal","fontWeight":"600","lineHeight":"1.2","letterSpacing":"0%"},"layout":{"selfStretch":"fit","flexSize":null}},"textColor":"primary","fontSize":"large"} -->
+<h2 class="wp-block-heading has-primary-color has-text-color has-link-color has-large-font-size" style="border-style:none;border-width:0px;border-radius:0px;margin-top:0;margin-bottom:0;font-style:normal;font-weight:600;letter-spacing:0%;line-height:1.2">The Future Still Needs Teachers</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>In other words, the future still needs teachers. But it needs teachers who are paying attention. This is why educators cannot simply ignore GenAI. To ignore it is not neutrality. To ignore it is to leave students alone with it. Students are already experimenting with these tools, often without guidance, without boundaries, and without the wisdom of educators who can help them discern what is true, ethical, useful, and humane. Some educators have responded with enthusiasm. Others have responded with fear. Most of us, if we are honest, have probably experienced both.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>GenAI is powerful, but it is not perfect. It can produce impressive responses, but it can also fabricate information. It can help students learn, but it can also help them avoid learning. It can save teachers time, but it can also tempt schools to reduce teaching to content delivery. It can support creativity, but it can also create dependency. This is why the goal is not thoughtless adoption. The goal is faithful, wise, and responsible engagement.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Teachers do not need to become AI engineers. They do not need to chase every new tool. They do not need to pretend that every innovation is good simply because it is new. But teachers do need to understand enough to guide students well. At its best, GenAI can help teachers reclaim time and energy for the parts of teaching that matter most. It can help draft lesson plans, generate examples, create differentiated materials, suggest feedback, summarize information, and support administrative communication. But these are not the heart of teaching.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The heart of teaching is still human. Teachers inspire. Teachers relate. Teachers challenge. Teachers comfort. Teachers notice. Teachers ask the question behind the question. Teachers see the child behind the assignment. Teachers cultivate wonder, discipline, courage, humility, and love of learning.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:group {"metadata":{"name":"Pull Quote"},"kanahomaResp":{"pad":{"desktop":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d30)","bottom":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d30)","left":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d40)","right":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d40)"},"mobile":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)","bottom":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)","left":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)","right":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"}},"mar":{"desktop":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d30)","bottom":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d30)"},"mobile":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)","bottom":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"}}},"style":{"border":{"left":{"color":"var:preset|color|gold-500","width":"3px"},"top":{"width":"0px","style":"none"},"right":{"width":"0px","style":"none"},"bottom":{"width":"0px","style":"none"}}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group" style="border-top-style:none;border-top-width:0px;border-right-style:none;border-right-width:0px;border-bottom-style:none;border-bottom-width:0px;border-left-color:var(--wp--preset--color--gold-500);border-left-width:3px"><!-- wp:paragraph {"style":{"typography":{"fontStyle":"italic","fontWeight":"600","lineHeight":"1.4"}},"textColor":"primary","fontSize":"h-4","fontFamily":"source-serif-4"} -->
+<p class="has-primary-color has-text-color has-source-serif-4-font-family has-h-4-font-size" style="font-style:italic;font-weight:600;line-height:1.4">AI can fill the pail. Teachers light the fire.</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:group -->
+
+<!-- wp:heading {"kanahomaResp":{"pad":[],"mar":{"desktop":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"mobile":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"tablet":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"}}},"style":{"border":{"radius":"0px","width":"0px","style":"none"},"elements":{"link":{"color":{"text":"var:preset|color|primary"}}},"spacing":{"margin":{"top":"0","bottom":"0"}},"typography":{"fontStyle":"normal","fontWeight":"600","lineHeight":"1.2","letterSpacing":"0%"},"layout":{"selfStretch":"fit","flexSize":null}},"textColor":"primary","fontSize":"large"} -->
+<h2 class="wp-block-heading has-primary-color has-text-color has-link-color has-large-font-size" style="border-style:none;border-width:0px;border-radius:0px;margin-top:0;margin-bottom:0;font-style:normal;font-weight:600;letter-spacing:0%;line-height:1.2">Start With Attention</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>So perhaps the first step is neither fear nor excitement. Perhaps the first step is attention. We need to pay attention to what AI can do, what it cannot do, what it should do, and what it must never be allowed to do.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>We need to become curious without becoming careless. We need to become cautious without becoming closed. We need to learn enough to lead.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"kanahomaResp":{"pad":[],"mar":{"desktop":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"mobile":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"tablet":{"top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"}}},"style":{"border":{"radius":"0px","width":"0px","style":"none"},"elements":{"link":{"color":{"text":"var:preset|color|primary"}}},"spacing":{"margin":{"top":"0","bottom":"0"}},"typography":{"fontStyle":"normal","fontWeight":"600","lineHeight":"1.2","letterSpacing":"0%"},"layout":{"selfStretch":"fit","flexSize":null}},"textColor":"primary","fontSize":"large"} -->
+<h2 class="wp-block-heading has-primary-color has-text-color has-link-color has-large-font-size" style="border-style:none;border-width:0px;border-radius:0px;margin-top:0;margin-bottom:0;font-style:normal;font-weight:600;letter-spacing:0%;line-height:1.2">References</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Hu, K. (2023, February 2). ChatGPT sets record for fastest-growing user base – analyst note. <em>Reuters</em>. <a href="https://www.reuters.com/technology/chatgpt-sets-record-fastest-growing-user-base-analyst-note-2023-02-01/" target="_blank" rel="noreferrer noopener">https://www.reuters.com/technology/chatgpt-sets-record-fastest-growing-user-base-analyst-note-2023-02-01/</a></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>LinkedIn &amp; Microsoft. (2024). <em>2024 work trend index annual report: AI at work is here. Now comes the hard part</em>. <a href="https://www.microsoft.com/en-us/worklab/work-trend-index/ai-at-work-is-here-now-comes-the-hard-part" target="_blank" rel="noreferrer noopener">https://www.microsoft.com/en-us/worklab/work-trend-index/ai-at-work-is-here-now-comes-the-hard-part</a></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>World Economic Forum. (2025). <em>The future of jobs report 2025</em>. <a href="https://www.weforum.org/publications/the-future-of-jobs-report-2025/" target="_blank" rel="noreferrer noopener">https://www.weforum.org/publications/the-future-of-jobs-report-2025/</a></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:group {"metadata":{"name":"Staff Card + Text","categories":[9],"patternName":"core/block/16389"},"kanahomaResp":{"pad":[],"mar":{"mobile":{"bottom":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d50)","top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d50)"},"tablet":{"bottom":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d50)","top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d50)"},"desktop":{"bottom":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d60)","top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d60)"}}},"style":{"border":{"radius":"16px","width":"1px"}},"borderColor":"gold-500","layout":{"type":"constrained"}} -->
+<div class="wp-block-group has-border-color has-gold-500-border-color" style="border-width:1px;border-radius:16px"><!-- wp:columns {"kanahomaEqualHeight":true} -->
+<div class="wp-block-columns"><!-- wp:column {"width":"25%"} -->
+<div class="wp-block-column" style="flex-basis:25%"><!-- wp:group {"kanahomaResp":{"pad":{"mobile":{"bottom":"25rem","left":""},"tablet":{"right":"","left":"","bottom":""}},"mar":[]},"className":"is-style-default","style":{"border":{"radius":{"topLeft":"16px","topRight":"0px","bottomLeft":"16px","bottomRight":"0px"},"width":"1px","color":"#FDB724"},"background":{"backgroundImage":{"url":"https://www.cui.edu/wp-content/uploads/sites/2/2026/08/eugene-kim-author.webp","id":25191,"source":"file","title":"eugene-kim-author"},"backgroundSize":"cover"}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group is-style-default has-border-color" style="border-color:#FDB724;border-width:1px;border-top-left-radius:16px;border-top-right-radius:0px;border-bottom-left-radius:16px;border-bottom-right-radius:0px"></div>
+<!-- /wp:group --></div>
+<!-- /wp:column -->
+
+<!-- wp:column {"width":"75%"} -->
+<div class="wp-block-column" style="flex-basis:75%"><!-- wp:group {"kanahomaResp":{"pad":{"desktop":{"left":"","right":"","top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)","bottom":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)"},"tablet":{"right":"","left":"","bottom":"","top":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d30)"},"mobile":{"right":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)","left":"var(\u002d\u002dwp\u002d\u002dpreset\u002d\u002dspacing\u002d\u002d20)","bottom":""}},"mar":[]},"style":{"spacing":{"blockGap":"var:preset|spacing|10","padding":{"left":"0","right":"var:preset|spacing|30","top":"0","bottom":"0"},"margin":{"top":"0","bottom":"0"}},"border":{"radius":"16px"}},"backgroundColor":"base","layout":{"type":"flex","orientation":"vertical","justifyContent":"left"}} -->
+<div class="wp-block-group has-base-background-color has-background" style="border-radius:16px;margin-top:0;margin-bottom:0;padding-top:0;padding-right:var(--wp--preset--spacing--30);padding-bottom:0;padding-left:0"><!-- wp:heading {"level":3,"style":{"border":{"radius":"0px","width":"0px","style":"none"},"elements":{"link":{"color":{"text":"var:preset|color|primary"}}},"spacing":{"margin":{"top":"0","bottom":"0"}},"typography":{"fontStyle":"normal","fontWeight":"600","lineHeight":"1.2","letterSpacing":"0%"},"layout":{"selfStretch":"fit","flexSize":null}},"textColor":"primary","fontSize":"medium","fontFamily":"source-serif-4"} -->
+<h3 class="wp-block-heading has-primary-color has-text-color has-link-color has-source-serif-4-font-family has-medium-font-size" style="border-style:none;border-width:0px;border-radius:0px;margin-top:0;margin-bottom:0;font-style:normal;font-weight:600;letter-spacing:0%;line-height:1.2">Eugene P. Kim, PhD</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph {"className":"has-contrast-color has-text-color has-link-color","style":{"border":{"radius":"0px"},"typography":{"lineHeight":"1.5","fontStyle":"normal","fontWeight":"700","textAlign":"left"},"elements":{"link":{"color":{"text":"var:preset|color|contrast"}}}},"textColor":"contrast","fontSize":"body"} -->
+<p class="has-text-align-left has-contrast-color has-text-color has-link-color has-body-font-size" style="border-radius:0px;font-style:normal;font-weight:700;line-height:1.5">Faculty, Ed.D. in Leadership Program</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph {"style":{"elements":{"link":{"color":{"text":"var:preset|color|contrast"}}},"typography":{"fontStyle":"normal","fontWeight":"400"}},"textColor":"contrast","fontSize":"body"} -->
+<p class="has-contrast-color has-text-color has-link-color has-body-font-size" style="font-style:normal;font-weight:400">Dr. Eugene P. Kim started at Concordia University Irvine in 2007 as Dean of Asia Programs, responsible for the strategic planning of the university’s Asia strategy, and Founding Director of the MA in International Studies (MAIS) programs in International Education, International Development, and International Business. From 2007–2017, Dr. Kim was deployed to Shanghai, China and represented the university’s interests in China and Asia. During that time he established MOUs and partnerships with over 20 Chinese universities and schools in Shanghai, Hangzhou, Beijing, Kunming, and other cities; developed graduate programs with over 300 alumni and $1.5 million in annual revenues; implemented short-term immersive study abroad programs for undergraduate and graduate students to China; successfully fundraised for an Asia library; and designed marketing materials, promotions, and university branding in China.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:details {"style":{"spacing":{"padding":{"top":"0","bottom":"0","left":"0","right":"0"},"margin":{"bottom":"var:preset|spacing|50"}},"elements":{"link":{"color":{"text":"var:preset|color|primary"}}},"typography":{"fontStyle":"normal","fontWeight":"600"}},"textColor":"primary","fontSize":"small","fontFamily":"source-serif-4"} -->
+<details class="wp-block-details has-primary-color has-text-color has-link-color has-source-serif-4-font-family has-small-font-size" style="margin-bottom:var(--wp--preset--spacing--50);padding-top:0;padding-right:0;padding-bottom:0;padding-left:0;font-style:normal;font-weight:600"><summary>Read More</summary><!-- wp:paragraph {"style":{"elements":{"link":{"color":{"text":"var:preset|color|contrast"}}},"typography":{"fontStyle":"normal","fontWeight":"400"}},"textColor":"contrast","fontSize":"body"} -->
+<p class="has-contrast-color has-text-color has-link-color has-body-font-size" style="font-style:normal;font-weight:400">Currently (since 2017) Dr. Kim serves as faculty in the Ed.D. in Leadership program, mentoring dissertation students in K-12, higher education, non-profits, and business sectors. His current research interests align with those of his doctoral students, including under-represented minority access to STEM, internationalization of education, educational entrepreneurship and innovation, and gratitude interventions.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph {"style":{"typography":{"fontStyle":"normal","fontWeight":"400"}},"textColor":"contrast","fontSize":"body","fontFamily":"source-sans-3"} -->
+<p class="has-contrast-color has-text-color has-source-sans-3-font-family has-body-font-size" style="font-style:normal;font-weight:400">Prior to this, Dr. Kim was a tenure-track professor at Pepperdine University where he taught graduate level teacher education courses and was the founding coordinator of a professional development school in Hollywood. During his tenure at Pepperdine University, he served as chair of the Pepperdine Charter School Initiative, as advisor to doctoral students of educational leadership, and as a member on the Rank, Tenure, and Promotion Committee.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph {"style":{"typography":{"fontStyle":"normal","fontWeight":"400"}},"textColor":"contrast","fontSize":"body","fontFamily":"source-sans-3"} -->
+<p class="has-contrast-color has-text-color has-source-sans-3-font-family has-body-font-size" style="font-style:normal;font-weight:400">Dr. Kim has served on boards of foundations and universities (Harvey Fellows, Emperor’s College), founded several non-profits and private companies (House for Kids, Foundation for Transformational Leadership, Xiamen Concordia International School, Integrated Education, Ltd., Kennedy Group, Ltd.), and is consultant to diverse industries including foreign investment, Hollywood films, and executive leadership.</p>
+<!-- /wp:paragraph --></details>
+<!-- /wp:details --></div>
+<!-- /wp:group --></div>
+<!-- /wp:column --></div>
+<!-- /wp:columns --></div>
+<!-- /wp:group -->

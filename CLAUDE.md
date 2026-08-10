@@ -55,10 +55,17 @@ deadline two days out ends up above an ETA due in two hours.
 | 4 | Tone urgency: the model reads the requester as pressed |
 | 5 | Has a deadline further out |
 | 6 | Everything else, by how long it has waited |
-| 7 | Waiting on the requester — never urgent, always last |
+| 7 | Waiting on the requester — never urgent |
+| 8 | Requested pre-launch — filed against a site that no longer exists |
 
 Tier is computed in the `ticket_queue` view; the ordering *inside* a tier is
 `src/lib/queue.js -> sortQueue`.
+
+**Pre-launch outranks every other rule, critical impact included.** The view also exposes
+`base_tier`, the tier a ticket would otherwise have had, and `sortQueue` uses it as the
+first tie-break. Without it the pre-launch bucket — around 60% of the open queue — would
+be an undifferentiated pile with its breached tickets scattered through it. A pre-launch
+ticket that really does need doing now gets pinned; pinned beats tier.
 
 ### Stalled tickets
 
@@ -101,10 +108,19 @@ and read straight past RLS, which would expose the whole queue to an anonymous v
 
 ### RLS
 
-Three roles in `app_users`: `admin` (Ivan), `manager` (Matt — can curate VIPs, ETAs,
-keyword rules, schedules, but nothing structural), `viewer`. A new sign-up lands as
-`viewer` via the `on_auth_user_created` trigger; promotion is deliberate. Edge Functions
-use the service role and bypass RLS entirely.
+Four roles in `app_users`: `admin` (Ivan), `manager` (Matt — can curate VIPs, ETAs,
+keyword rules, schedules, but nothing structural), `viewer`, and `content_editor` (the
+student workers). A new sign-up lands as `viewer` via the `on_auth_user_created` trigger;
+promotion is deliberate. Edge Functions use the service role and bypass RLS entirely.
+
+`content_editor` is scoped to the tickets assigned to them, via
+`app_users.zendesk_agent_id` and the `can_see_ticket()` helper. The link is set explicitly
+rather than matched on email: a hub sign-in address that differs from the Zendesk one
+would otherwise produce an empty queue with nothing to explain it.
+
+`allowed_requester_domains` stays readable by **every** role. `ticket_spam_status` is
+`security_invoker` and derives `is_spam` from that list, so a role that cannot read it
+sees an empty allowlist, classifies every requester as spam, and gets an empty queue.
 
 ## Zendesk specifics, learned from the live instance
 
@@ -140,10 +156,52 @@ the publishable key only permits what RLS allows. Zendesk and Anthropic credenti
 npm install
 npm run dev                              # http://localhost:5175
 npm run build
+npm test                                 # renderer fidelity + nav role gating
 
 python3 scripts/probe_zendesk.py         # read-only API probe, dumps to data/
 ./scripts/deploy-function.sh sync-zendesk
 ```
+
+## Tools
+
+Standalone utilities that are not about the queue. `Tools` is a nav heading with
+`navigable: false` — it groups its children and has no page of its own.
+
+### Article Generator
+
+`.docx` / markdown / pasted text in, WordPress Gutenberg block markup for cui.edu out,
+plus a companion file for the excerpt, SEO fields and publishing checklist.
+
+The architecture is the point: **the model never sees the article on the way out.**
+
+```
+browser: parse .docx ──► numbered nodes ──┬──► model ──► indices + labels ──┐
+                                          │                                 ▼
+                                          └───────── text ────────────► renderer ──► markup
+```
+
+`src/lib/articleSource.js` parses in the browser (mammoth for `.docx`, marked for the
+rest); the file never leaves the machine. `analyze-article` sends only `index | type |
+text` and gets back indices: which node is the series note, which range is an author bio,
+which node carries a typo. `src/lib/gutenberg.js` renders. The author's prose goes parser
+→ renderer without touching the model, so "never invent content" is structural rather than
+a prompt instruction. The model writes only the excerpt and typo find/replace pairs.
+
+Two details that break naive implementations:
+
+- **`--` is illegal in an HTML comment**, so block attributes carry `--`. Those
+  six characters must reach the output literally. `serializeAttrs` escapes runs of two or
+  more hyphens *after* `JSON.stringify`, which is why `gold-500` stays readable.
+- **An unused `pad`/`mar` in `kanahomaResp` is an empty array**, not an object.
+
+Attribute shapes are copied from `test/fixtures/reference-approved-article.txt`, an
+article the client signed off. `npm test` re-renders its headings, pull quote and staff
+card and diffs them against it, so drift fails the build. The 1,000-character Read More
+threshold is derived from those fixtures: it reproduces both a 690-character bio staying
+whole and a 913-character opener collapsing the rest.
+
+Known gaps, surfaced as flags rather than hidden: lists, sub-headings and the pull quote
+appear in no published CUI article, so their styling is unproven in production.
 
 ## Not built yet
 
