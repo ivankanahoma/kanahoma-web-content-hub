@@ -11,12 +11,12 @@ import Leadership from "./components/Leadership";
 import Documentation from "./components/Documentation";
 import AsanaTasks from "./components/AsanaTasks";
 import {
-  RecentlyResolved,
   Requesters,
   SectionIntro,
   SpamList,
   UrgencyKeywords,
 } from "./components/SimpleLists";
+import RecentActivity from "./components/RecentActivity";
 import bug from "./assets/kanahoma-bug-green.png";
 import wordmark from "./assets/kanahoma-wordmark-green.png";
 
@@ -28,6 +28,7 @@ export default function App() {
   const [client, setClient] = useState(null);
   const [tickets, setTickets] = useState(null);
   const [resolved, setResolved] = useState([]);
+  const [activity, setActivity] = useState(null);
   const [spam, setSpam] = useState([]);
   const [requesters, setRequesters] = useState([]);
   const [keywords, setKeywords] = useState([]);
@@ -69,13 +70,14 @@ export default function App() {
     let cancelled = false;
 
     (async () => {
-      const [me, clientRow, queue, agents, done, junk, people, rules, asana] =
+      const [me, clientRow, queue, agents, done, acts, junk, people, rules, asana] =
         await Promise.all([
         supabase.from("app_users").select("*").eq("id", session.user.id).maybeSingle(),
         supabase.from("clients").select("*").eq("slug", "cui").maybeSingle(),
         supabase.from("ticket_queue").select("*"),
         supabase.from("zendesk_agents").select("id, email"),
         supabase.from("recently_resolved").select("*"),
+        supabase.from("ticket_activity").select("*"),
         supabase.from("spam_tickets").select("*"),
         // The directory view applies the same domain allowlist as the queue, so spam
         // senders are not offered as people you could flag as VIP.
@@ -92,6 +94,7 @@ export default function App() {
       setClient(clientRow.data);
       setTickets(queue.data ?? []);
       setResolved(done.data ?? []);
+      setActivity(acts.data ?? []);
       setSpam(junk.data ?? []);
       setRequesters(people.data ?? []);
       setKeywords(rules.data ?? []);
@@ -196,7 +199,11 @@ export default function App() {
 
   const counts = {
     queue: tickets?.length ?? 0,
-    resolved: resolved.length,
+    activity: (activity ?? []).filter((t) => {
+      const last = [t.last_team_comment_at, t.last_requester_comment_at]
+        .filter(Boolean).sort().at(-1);
+      return last && Date.now() - new Date(last).getTime() < 7 * 864e5;
+    }).length,
     spam: spam.length,
     requesters: requesters.length,
     keywords: keywords.length,
@@ -338,8 +345,12 @@ export default function App() {
               </>
             )}
 
-            {section === "resolved" && (
-              <RecentlyResolved rows={resolved} subdomain={subdomain} />
+            {section === "activity" && (
+              <RecentActivity
+                activity={activity}
+                resolved={resolved}
+                subdomain={subdomain}
+              />
             )}
 
             {section === "spam" && <SpamList rows={spam} subdomain={subdomain} />}

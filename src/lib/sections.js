@@ -24,12 +24,14 @@ export const SECTIONS = [
     countKey: "queue",
     children: [
       {
-        id: "resolved",
-        label: "Recently resolved",
+        id: "activity",
+        label: "Recent activity",
         icon: CheckCircle2,
         ready: true,
-        countKey: "resolved",
-        blurb: "Solved in the last 7 days. Not work to do.",
+        countKey: "activity",
+        blurb:
+          "What moved recently, and who moved it. None of this is a work list — the " +
+          "queue decides what to do next.",
       },
       {
         id: "requesters",

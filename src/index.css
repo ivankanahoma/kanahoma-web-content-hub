@@ -782,3 +782,23 @@ a { color: var(--k-green-700); }
 }
 .doc-table tr:last-child td { border-bottom: 0; }
 .doc-table td:first-child { font-weight: 600; white-space: nowrap; }
+
+/* ------------------------------------------------------------ recent activity */
+
+.activity-block + .activity-block { margin-top: 30px; }
+.activity-block .block-title { margin-top: 0; }
+.activity-block .section-intro { margin: 0 0 10px; }
+
+/* A line of what was actually said, so the list answers "what happened" and not
+   only "something happened". */
+.excerpt {
+  display: block;
+  color: var(--k-text-muted);
+  font-size: 12px;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resolved-tick { color: var(--k-green-300); flex: 0 0 auto; }

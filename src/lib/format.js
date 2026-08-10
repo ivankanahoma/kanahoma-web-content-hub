@@ -53,3 +53,18 @@ export function pluralDays(n) {
   if (n == null) return null;
   return `${n} ${n === 1 ? "day" : "days"}`;
 }
+
+/** "3h ago", "yesterday", "5d ago" — for lists where recency is the point. */
+export function formatRelative(value) {
+  if (!value) return null;
+  const minutes = Math.round((Date.now() - new Date(value).getTime()) / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  if (days === 1) return "yesterday";
+  if (days < 30) return `${days}d ago`;
+  const months = Math.round(days / 30);
+  return `${months}mo ago`;
+}

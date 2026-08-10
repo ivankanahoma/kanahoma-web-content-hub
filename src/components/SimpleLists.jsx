@@ -8,29 +8,6 @@ export function SectionIntro({ section }) {
   return <p className="section-intro">{section.blurb}</p>;
 }
 
-export function RecentlyResolved({ rows, subdomain }) {
-  if (!rows?.length) return <div className="state">Nothing resolved in the last 7 days.</div>;
-  return (
-    <div className="plain-list">
-      {rows.map((r) => (
-        <div className="plain-row" key={r.id}>
-          <span className="id">#{r.id}</span>
-          <span className="grow">{r.subject || "(no subject)"}</span>
-          <span className="muted">{r.requester_name}</span>
-          <span className="pill">
-            <UserCheck size={12} strokeWidth={2} />
-            {r.assignee_name ?? "unassigned"}
-          </span>
-          <span className="muted">{formatDate(r.solved_at)}</span>
-          <a href={zendeskUrl(subdomain, r.id)} target="_blank" rel="noreferrer noopener">
-            <ExternalLink size={14} />
-          </a>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export function SpamList({ rows, subdomain }) {
   if (!rows?.length) return <div className="state">Nothing filtered out right now.</div>;
   return (
