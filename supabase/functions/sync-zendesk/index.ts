@@ -103,23 +103,24 @@ class Zendesk {
  * author_id is -1) and the notices Zendesk writes when tickets are merged. Neither is a
  * human reply, so both are excluded from every reply-timing calculation.
  *
- * Sides are relative to the ticket, not to the person. Several CUI staff hold an agent
- * or admin role in Zendesk and still file tickets of their own; on those tickets they
- * are the requester, and their messages are what we owe an answer to. Deciding by
- * global role instead flipped such tickets to "waiting on them" while the requester
- * was in fact waiting on us.
+ * "Us" means the Web Team group, not the Zendesk role. CUI runs several Zendesk groups
+ * and staff outside this one hold agent or admin roles; siding by role counted their
+ * messages as ours and made tickets look answered by a team that had not touched them.
+ * Group membership is the definition that matches whose queue this actually is.
+ *
+ * Sides are also relative to the ticket: a Web Team member who files a ticket of their
+ * own is the requester on it, and their messages are what we owe an answer to.
  */
 function authorSide(
   c: Comment,
-  users: Map<number, ZendeskUser>,
+  teamMemberIds: Set<number>,
   requesterId: number | null,
 ) {
   if (c.author_id === SYSTEM_AUTHOR_ID) return "system";
   if (c.via?.channel === "rule") return "system";
   if (c.via?.source?.rel === "merge") return "system";
   if (requesterId != null && c.author_id === requesterId) return "requester";
-  const role = users.get(c.author_id)?.role;
-  return role === "agent" || role === "admin" ? "us" : "requester";
+  return teamMemberIds.has(c.author_id) ? "us" : "requester";
 }
 
 function stripHtml(s: string) {
@@ -147,6 +148,7 @@ Deno.serve(async () => {
   // --- Agents: who counts as "us" ------------------------------------------
   const group = await zd.findGroup(client.zendesk_group_name);
   const agents = await zd.groupAgents(group.id);
+  const teamMemberIds = new Set(agents.map((a) => a.id));
   await db.from("zendesk_agents").upsert(
     agents.map((a) => ({
       id: a.id,
@@ -225,7 +227,7 @@ Deno.serve(async () => {
       ticket_id: t.id,
       author_id: c.author_id,
       author_name: userById.get(c.author_id)?.name ?? null,
-      author_side: authorSide(c, userById, t.requester_id),
+      author_side: authorSide(c, teamMemberIds, t.requester_id),
       is_public: c.public,
       body: stripHtml(c.plain_body ?? c.body),
       created_at: c.created_at,

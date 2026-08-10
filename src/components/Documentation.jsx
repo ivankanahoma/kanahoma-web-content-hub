@@ -94,9 +94,15 @@ const TOPICS = [
           <li><strong>Waiting on them</strong> — our message was the last one, so we are blocked.</li>
         </ul>
         <p>
-          Sides are decided <strong>per ticket, not per person</strong>. Several CUI staff
-          hold an agent role in Zendesk and still file tickets of their own; on those, they
-          count as the requester.
+          <strong>"Us" means the Web Team group in Zendesk</strong>, not anyone holding an
+          agent or admin role. CUI runs several groups, and staff outside this one reply on
+          tickets too; counting their messages as ours made tickets look answered by a team
+          that had not touched them.
+        </p>
+        <p>
+          Sides are also decided <strong>per ticket</strong>. A Web Team member who files a
+          ticket of their own is the requester on it, and their messages are what we owe an
+          answer to.
         </p>
         <p>
           The autoresponder and Zendesk's merge notices are excluded from this entirely.

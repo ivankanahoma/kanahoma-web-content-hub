@@ -16,20 +16,13 @@ function Block({ title, blurb, rows, empty, children }) {
 }
 
 export default function RecentActivity({ activity, resolved, subdomain }) {
-  const { byTeam, byRequester } = useMemo(() => {
-    const open = (activity ?? []).filter((t) => t.status !== "solved");
-    return {
-      byTeam: open
-        .filter((t) => t.last_team_comment_at)
-        .sort((a, b) => b.last_team_comment_at.localeCompare(a.last_team_comment_at))
-        .slice(0, LIMIT),
-      byRequester: open
-        .filter((t) => t.last_requester_comment_at)
-        .sort((a, b) =>
-          b.last_requester_comment_at.localeCompare(a.last_requester_comment_at))
-        .slice(0, LIMIT),
-    };
-  }, [activity]);
+  const byRequester = useMemo(() =>
+    (activity ?? [])
+      .filter((t) => t.status !== "solved" && t.last_requester_comment_at)
+      .sort((a, b) =>
+        b.last_requester_comment_at.localeCompare(a.last_requester_comment_at))
+      .slice(0, LIMIT),
+  [activity]);
 
   const link = (id) => (
     <a href={zendeskUrl(subdomain, id)} target="_blank" rel="noreferrer noopener"
@@ -42,33 +35,6 @@ export default function RecentActivity({ activity, resolved, subdomain }) {
 
   return (
     <>
-      <Block
-        title="Recently updated by the Web Team"
-        blurb="Open tickets where we spoke last, newest first."
-        rows={byTeam}
-        empty="No replies from the team yet."
-      >
-        <div className="plain-list">
-          {byTeam.map((t) => (
-            <div className="plain-row" key={t.id}>
-              <span className="id">#{t.id}</span>
-              <span className="grow">
-                {t.subject}
-                {t.last_team_body && (
-                  <span className="excerpt">{t.last_team_body.slice(0, 110)}</span>
-                )}
-              </span>
-              <span className="pill">
-                <UserCheck size={12} strokeWidth={2} />
-                {t.last_team_author ?? "unknown"}
-              </span>
-              <span className="muted">{formatRelative(t.last_team_comment_at)}</span>
-              {link(t.id)}
-            </div>
-          ))}
-        </div>
-      </Block>
-
       <Block
         title="Recently updated by requesters"
         blurb="Open tickets where the requester spoke last. These are usually waiting on us."
