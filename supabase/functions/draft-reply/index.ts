@@ -5,6 +5,8 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+import { json, preflight } from "../_shared/cors.ts";
+
 const MODEL = "claude-sonnet-5";
 
 const SYSTEM_PROMPT = `
@@ -44,6 +46,9 @@ async function sha256(text: string) {
 }
 
 Deno.serve(async (req) => {
+  const cors = preflight(req);
+  if (cors) return cors;
+
   const db = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -51,12 +56,12 @@ Deno.serve(async (req) => {
 
   const { ticket_id: ticketId } = await req.json().catch(() => ({}));
   if (!ticketId) {
-    return Response.json({ error: "ticket_id is required" }, { status: 400 });
+    return json({ error: "ticket_id is required" }, { status: 400 });
   }
 
   const { data: ticket } = await db
     .from("tickets").select("*").eq("id", ticketId).maybeSingle();
-  if (!ticket) return Response.json({ error: "unknown ticket" }, { status: 404 });
+  if (!ticket) return json({ error: "unknown ticket" }, { status: 404 });
 
   const { data: client } = await db
     .from("clients").select("*").eq("id", ticket.client_id).single();
@@ -110,7 +115,7 @@ Deno.serve(async (req) => {
   });
 
   if (!res.ok) {
-    return Response.json({ error: `Anthropic ${res.status}` }, { status: 502 });
+    return json({ error: `Anthropic ${res.status}` }, { status: 502 });
   }
 
   const payload = await res.json();
@@ -123,7 +128,7 @@ Deno.serve(async (req) => {
     .replace(/\s*[\u2014\u2013]\s*/g, " - ")
     .trim();
 
-  if (!body) return Response.json({ error: "empty draft" }, { status: 502 });
+  if (!body) return json({ error: "empty draft" }, { status: 502 });
 
   await db.from("ai_usage").insert({
     job: "draft-reply",
@@ -146,7 +151,7 @@ Deno.serve(async (req) => {
     content_hash: contentHash,
     generated_at: new Date().toISOString(),
   });
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return json({ error: error.message }, { status: 500 });
 
-  return Response.json({ body, model: MODEL, content_hash: contentHash });
+  return json({ body, model: MODEL, content_hash: contentHash });
 });

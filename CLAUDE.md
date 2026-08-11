@@ -20,6 +20,12 @@ Anthropic ─► enrich-tickets┘         ▲
 ```
 
 - **Edge Functions** (Deno) hold every credential. The front end never sees one.
+  Any function the browser calls (`analyze-article`, `draft-reply`) must answer the CORS
+  preflight *before* reading its body, via `_shared/cors.ts`. `functions.invoke` sends an
+  Authorization header, so the browser always sends `OPTIONS` first; a function that
+  parses JSON straight away answers it with a 400 and no CORS headers, and the call dies
+  in the browser with nothing in the function logs. The cron-driven functions never need
+  it.
 - **pg_cron + pg_net** invoke the functions. `sync-zendesk` every 10 minutes,
   `enrich-tickets` five minutes behind it so it always reads fresh threads.
 - **The SPA only reads.** Its writes are limited to hub-side judgements: VIP flags,

@@ -9,7 +9,7 @@ import {
   Upload,
   Wand2,
 } from "lucide-react";
-import { supabase } from "../lib/supabase";
+import { invokeFunction } from "../lib/invoke";
 import { readSource } from "../lib/articleSource";
 import { renderArticle, validate } from "../lib/gutenberg";
 import { applyTypos, buildCompanionFields, buildFlags } from "../lib/articleOutput";
@@ -85,18 +85,14 @@ export default function ArticleGenerator() {
       const workingTitle = title.trim() || source.title || file?.name || "";
 
       // The model sees text and gets back indices. The prose never makes the return trip.
-      const { data, error: fnError } = await supabase.functions.invoke("analyze-article", {
-        body: {
-          title: workingTitle,
-          nodes: source.nodes.map((n) => ({
-            type: n.type,
-            level: n.level,
-            text: n.type === "list" ? n.items.map((i) => i.text).join(" • ") : n.text,
-          })),
-        },
+      const data = await invokeFunction("analyze-article", {
+        title: workingTitle,
+        nodes: source.nodes.map((n) => ({
+          type: n.type,
+          level: n.level,
+          text: n.type === "list" ? n.items.map((i) => i.text).join(" • ") : n.text,
+        })),
       });
-      if (fnError) throw new Error(fnError.message);
-      if (data?.error) throw new Error(data.error);
 
       const { nodes, applied } = applyTypos(source.nodes, data.typos);
       const markup = renderArticle(nodes, data);

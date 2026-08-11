@@ -12,6 +12,8 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+import { json, preflight } from "../_shared/cors.ts";
+
 const MODEL = "claude-sonnet-5";
 const MAX_NODES = 400;
 
@@ -39,10 +41,15 @@ person. There can be more than one when an article has several authors.
 A closing paragraph that argues the article's point is not a bio, even if it mentions the
 author. If you are not sure, do not label it.
 
-EXCERPT - the one thing you write. Take the article's opening sentence, or the first two
-if the first is short. Trim to roughly 155 characters at a word boundary. No trailing
-ellipsis, no quotation marks around it, no inline HTML. It must read as a complete
-thought, because it is what appears on the article cards.
+EXCERPT - the one thing you write. Take the opening sentence of the article's first real
+body paragraph, or the first two if the first is short. Trim to roughly 155 characters at
+a word boundary. No trailing ellipsis, no quotation marks around it, no inline HTML. It
+must read as a complete thought, because it is what appears on the article cards.
+
+Never build the excerpt from the standfirst. If you labelled a node as the standfirst, it
+is not eligible: an excerpt that opens "This article is part of the series ..." describes
+the series on every card instead of describing this article. Start from the first body
+paragraph after it. Headings are not eligible either.
 
 SEO - only if the source document actually contains them: meta title, meta description,
 focus keyphrase, canonical URL. These usually sit in a block at the top or bottom labelled
@@ -178,19 +185,22 @@ function sanitize(result: Record<string, unknown>, nodes: Node[]) {
 }
 
 Deno.serve(async (req) => {
+  const cors = preflight(req);
+  if (cors) return cors;
+
   const started = Date.now();
 
   let body: { nodes?: Node[]; title?: string };
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "expected a JSON body" }, { status: 400 });
+    return json({ error: "expected a JSON body" }, { status: 400 });
   }
 
   const nodes = body.nodes ?? [];
-  if (!nodes.length) return Response.json({ error: "nodes is required" }, { status: 400 });
+  if (!nodes.length) return json({ error: "nodes is required" }, { status: 400 });
   if (nodes.length > MAX_NODES) {
-    return Response.json(
+    return json(
       { error: `That article has ${nodes.length} blocks, over the ${MAX_NODES} limit.` },
       { status: 413 },
     );
@@ -227,12 +237,12 @@ Deno.serve(async (req) => {
   if (!res.ok) {
     const detail = await res.text();
     console.error("anthropic", res.status, detail);
-    return Response.json({ error: `Anthropic ${res.status}` }, { status: 502 });
+    return json({ error: `Anthropic ${res.status}` }, { status: 502 });
   }
 
   const payload = await res.json();
   const call = payload.content?.find((c: { type: string }) => c.type === "tool_use");
-  if (!call) return Response.json({ error: "the model returned no labels" }, { status: 502 });
+  if (!call) return json({ error: "the model returned no labels" }, { status: 502 });
 
   const db = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -255,5 +265,5 @@ Deno.serve(async (req) => {
     ms: Date.now() - started,
   }));
 
-  return Response.json(analysis);
+  return json(analysis);
 });

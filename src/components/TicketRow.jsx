@@ -8,6 +8,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { invokeFunction } from "../lib/invoke";
 import {
   COMPLEXITY_LABEL,
   DUE_KIND_LABEL,
@@ -55,11 +56,12 @@ export default function TicketRow({
   async function generateDraft() {
     setDraftBusy(true);
     setProblem(null);
-    const { data, error } = await supabase.functions.invoke("draft-reply", {
-      body: { ticket_id: ticket.id },
-    });
-    if (error || data?.error) setProblem(data?.error ?? error.message);
-    else setDraft({ ...data, generated_at: new Date().toISOString() });
+    try {
+      const data = await invokeFunction("draft-reply", { ticket_id: ticket.id });
+      setDraft({ ...data, generated_at: new Date().toISOString() });
+    } catch (e) {
+      setProblem(e.message);
+    }
     setDraftBusy(false);
   }
 
