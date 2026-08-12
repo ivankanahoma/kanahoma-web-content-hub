@@ -5,6 +5,7 @@ import {
   Sparkles,
   User,
   UserCheck,
+  UserPlus,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { invokeFunction } from "../lib/invoke";
@@ -43,6 +44,7 @@ export default function TicketRow({
   const [copied, setCopied] = useState(false);
   const [problem, setProblem] = useState(null);
   const [assignBusy, setAssignBusy] = useState(false);
+  const [picking, setPicking] = useState(false);
 
   // Only fetch a stored draft once the row is actually opened.
   useEffect(() => {
@@ -92,6 +94,7 @@ export default function TicketRow({
     setAssignBusy(true);
     setProblem(null);
     try {
+      setPicking(false);
       await invokeFunction("assign-ticket", {
         ticket_id: ticket.id,
         assignee_id: value === "" ? null : Number(value),
@@ -202,8 +205,39 @@ export default function TicketRow({
             {/* The requester's name only earns a chip when it changes what you do. */}
             {ticket.is_vip && <Pill icon={User}>{ticket.requester_name || "unknown"}</Pill>}
 
-            {ticket.assignee_name && (
+            {/* Ownership sits in the row rather than behind an expand, because an
+                unowned ticket is a thing to fix while scanning, not while reading. */}
+            {picking ? (
+              <select
+                className="assignee-select inline"
+                autoFocus
+                value={ticket.assignee_id ?? ""}
+                disabled={assignBusy}
+                onClick={(e) => e.stopPropagation()}
+                onBlur={() => setPicking(false)}
+                onChange={(e) => { e.stopPropagation(); assignTo(e.target.value); }}
+                aria-label="Assign this ticket"
+              >
+                <option value="">Unassigned</option>
+                {agents.map((a) => (
+                  <option key={a.id} value={a.id}>{a.name}</option>
+                ))}
+              </select>
+            ) : canEdit ? (
+              <button
+                className={`pill as-button ${ticket.assignee_name ? "assignee" : "unassigned"}`}
+                onClick={(e) => { e.stopPropagation(); setPicking(true); }}
+                disabled={assignBusy}
+                title="Assign this ticket in Zendesk"
+              >
+                {ticket.assignee_name ? <UserCheck size={12} strokeWidth={2} />
+                                      : <UserPlus size={12} strokeWidth={2} />}
+                {assignBusy ? "Saving…" : ticket.assignee_name ?? "Unassigned"}
+              </button>
+            ) : ticket.assignee_name ? (
               <Pill icon={UserCheck} tone="assignee">{ticket.assignee_name}</Pill>
+            ) : (
+              <Pill icon={UserPlus} tone="unassigned">Unassigned</Pill>
             )}
           </div>
         </div>
@@ -309,34 +343,6 @@ export default function TicketRow({
             <div>
               <dt>Requester</dt>
               <dd>{ticket.requester_name || "unknown"}</dd>
-            </div>
-
-            <div>
-              <dt>Assigned to</dt>
-              <dd>
-                {canEdit ? (
-                  <select
-                    className="assignee-select"
-                    value={ticket.assignee_id ?? ""}
-                    disabled={assignBusy}
-                    onChange={(e) => assignTo(e.target.value)}
-                    aria-label="Assign this ticket"
-                  >
-                    <option value="">Unassigned</option>
-                    {agents.map((a) => (
-                      <option key={a.id} value={a.id}>{a.name}</option>
-                    ))}
-                  </select>
-                ) : (
-                  ticket.assignee_name ?? "unassigned"
-                )}
-                {assignBusy && <span className="muted"> saving in Zendesk…</span>}
-                {canEdit && (
-                  <p className="field-note">
-                    This writes to Zendesk. Only Web Team members are listed.
-                  </p>
-                )}
-              </dd>
             </div>
 
             <div>

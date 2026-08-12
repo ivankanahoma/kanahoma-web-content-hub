@@ -42,8 +42,12 @@ every signed-in account, viewer and content editor included, reaches the same UR
 valid JWT. `_shared/auth.ts -> requireRole` verifies the caller's token with `getUser`
 (never by decoding it) and looks their role up with the service key, because a
 `content_editor` cannot read `app_users` at all and that is indistinguishable from having
-no role. The function refuses an assignee outside the Web Team group and touches nothing
-else on the ticket.
+no role. The function touches nothing else on the ticket.
+
+Assignees come from `zendesk_agents.assignable`, a **hub-side curation of six people**,
+not from group membership: the Zendesk group carries fifteen, including staff who no
+longer work this queue and outside contractors. Sync never names that column in its
+upsert, so the flag survives, and a new group member defaults to not assignable.
 
 ### Why the front end cannot own the ingest
 

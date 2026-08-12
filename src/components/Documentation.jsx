@@ -360,11 +360,19 @@ const TOPICS = [
           minutes.
         </p>
         <p>
-          It is deliberately narrow. Only admins and managers can do it, only Web Team
-          members can be picked, and nothing else on the ticket is touched: no status, no
-          comment, no tags. The permission is checked against your own sign-in inside the
-          function, not taken from the page, because Edge Functions run with full database
-          access and the interface is not what stops anyone.
+          It is deliberately narrow. Only admins and managers can do it, and nothing else
+          on the ticket is touched: no status, no comment, no tags. The permission is
+          checked against your own sign-in inside the function, not taken from the page,
+          because Edge Functions run with full database access and the interface is not
+          what stops anyone.
+        </p>
+        <p>
+          The picker lists <strong>six people</strong>, not the fifteen in the Zendesk
+          group. The group also carries Kanahoma staff who no longer work this queue,
+          outside contractors and CUI staff who happen to hold an agent seat; offering
+          them is how a ticket ends up parked with somebody who is not looking at it. That
+          list is curated in the hub, so a sync never overwrites it, and anyone added to
+          the Zendesk group later stays off the picker until someone puts them on it.
         </p>
       </>
     ),

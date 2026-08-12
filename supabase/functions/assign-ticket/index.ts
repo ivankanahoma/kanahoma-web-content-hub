@@ -40,16 +40,19 @@ Deno.serve(async (req) => {
       .from("tickets").select("id, client_id, assignee_id").eq("id", ticketId).maybeSingle();
     if (!ticket) return json({ error: "unknown ticket" }, { status: 404 });
 
+    // Group membership is not enough. The Zendesk group carries people who no longer
+    // work this queue, so the hub keeps its own shorter list of who work is handed to.
     if (assigneeId != null) {
       const { data: agent } = await db
         .from("zendesk_agents")
         .select("id, name")
         .eq("id", assigneeId)
         .eq("client_id", ticket.client_id)
+        .eq("assignable", true)
         .maybeSingle();
       if (!agent) {
         return json(
-          { error: "That person is not in the Web Team group in Zendesk." },
+          { error: "That person is not on the Web Team assignment list." },
           { status: 400 },
         );
       }

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { CheckCircle2, ExternalLink, User, UserCheck } from "lucide-react";
+import { CheckCircle2, User, UserCheck } from "lucide-react";
 import { zendeskUrl } from "../lib/queue";
 import { formatDate, formatRelative } from "../lib/format";
 
@@ -24,10 +24,12 @@ export default function RecentActivity({ activity, resolved, subdomain }) {
       .slice(0, LIMIT),
   [activity]);
 
-  const link = (id) => (
-    <a href={zendeskUrl(subdomain, id)} target="_blank" rel="noreferrer noopener"
-       aria-label={`Open ticket ${id} in Zendesk`}>
-      <ExternalLink size={14} />
+  /** The number is the thing people reach for, so it is the link. */
+  const ticketLink = (id) => (
+    <a className="id ticket-id" href={zendeskUrl(subdomain, id)}
+       target="_blank" rel="noreferrer noopener"
+       title="Open in Zendesk">
+      #{id}
     </a>
   );
 
@@ -44,7 +46,7 @@ export default function RecentActivity({ activity, resolved, subdomain }) {
         <div className="plain-list">
           {byRequester.map((t) => (
             <div className="plain-row" key={t.id}>
-              <span className="id">#{t.id}</span>
+              {ticketLink(t.id)}
               <span className="grow">
                 {t.subject}
                 {t.last_requester_body && (
@@ -61,7 +63,6 @@ export default function RecentActivity({ activity, resolved, subdomain }) {
                 {t.requester_name ?? "unknown"}
               </span>
               <span className="muted">{formatRelative(t.last_requester_comment_at)}</span>
-              {link(t.id)}
             </div>
           ))}
         </div>
@@ -77,7 +78,7 @@ export default function RecentActivity({ activity, resolved, subdomain }) {
           {(resolved ?? []).map((r) => (
             <div className="plain-row" key={r.id}>
               <CheckCircle2 size={14} strokeWidth={1.75} className="resolved-tick" />
-              <span className="id">#{r.id}</span>
+              {ticketLink(r.id)}
               <span className="grow">{r.subject || "(no subject)"}</span>
               <span className="muted">{r.requester_name}</span>
               <span className="pill">
@@ -85,7 +86,6 @@ export default function RecentActivity({ activity, resolved, subdomain }) {
                 {r.assignee_name ?? "unassigned"}
               </span>
               <span className="muted">{formatDate(r.solved_at)}</span>
-              {link(r.id)}
             </div>
           ))}
         </div>

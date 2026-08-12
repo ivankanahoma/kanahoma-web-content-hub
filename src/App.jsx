@@ -106,7 +106,7 @@ export default function App() {
         supabase.from("app_users").select("*").eq("id", session.user.id).maybeSingle(),
         supabase.from("clients").select("*").eq("slug", "cui").maybeSingle(),
         supabase.from("ticket_queue").select("*"),
-        supabase.from("zendesk_agents").select("id, name, email").order("name"),
+        supabase.from("zendesk_agents").select("id, name, email, assignable").order("name"),
         supabase.from("recently_resolved").select("*"),
         supabase.from("ticket_activity").select("*"),
         supabase.from("spam_tickets").select("*"),
@@ -130,7 +130,9 @@ export default function App() {
       setRequesters(people.data ?? []);
       setKeywords(rules.data ?? []);
       setAsanaCount(asana.data?.length ?? 0);
-      setAgents(agents.data ?? []);
+      // The picker offers the six people work is actually handed to, not the
+      // fifteen the Zendesk group happens to carry.
+      setAgents((agents.data ?? []).filter((a) => a.assignable));
       setMyAgentId(
         (agents.data ?? []).find(
           (a) => a.email?.toLowerCase() === session.user.email?.toLowerCase(),

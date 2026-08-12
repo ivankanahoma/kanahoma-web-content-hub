@@ -988,3 +988,19 @@ a { color: var(--k-green-700); }
 
 /* Says what a control does before it does it, for the one that leaves the hub. */
 .field-note { margin: 4px 0 0; font-size: 11.5px; color: var(--k-text-muted); }
+
+/* The assignee chip is a control when you can change it, and reads like one. */
+.pill.as-button { border-style: solid; cursor: pointer; }
+.pill.as-button:hover { border-color: var(--k-green-300); color: var(--k-green-700); }
+.pill.as-button:disabled { opacity: 0.55; cursor: wait; }
+.pill.unassigned {
+  border-style: dashed;
+  border-color: var(--k-hellbender);
+  color: var(--k-hellbender);
+}
+.pill.as-button.unassigned:hover { border-color: var(--k-hellbender); }
+.assignee-select.inline { max-width: 190px; padding: 3px 6px; font-size: 12.5px; }
+
+/* .plain-row .id outranks .ticket-id, so the linked number needs its own hover here. */
+.plain-row a.id { text-decoration: none; }
+.plain-row a.id:hover { color: var(--k-hellbender); text-decoration: underline; }
