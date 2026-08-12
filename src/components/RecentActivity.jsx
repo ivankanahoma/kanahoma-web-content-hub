@@ -51,6 +51,11 @@ export default function RecentActivity({ activity, resolved, subdomain }) {
                   <span className="excerpt">{t.last_requester_body.slice(0, 110)}</span>
                 )}
               </span>
+              {/* The whole point of this list: they wrote, did anyone pick it up? */}
+              <span className={`tag ${t.answered ? "answered" : "unanswered"}`}>
+                {t.answered ? "Answered" : "Not answered"}
+              </span>
+              {t.reopened && <span className="tag reopened">Reopened</span>}
               <span className="pill">
                 <User size={12} strokeWidth={2} />
                 {t.requester_name ?? "unknown"}

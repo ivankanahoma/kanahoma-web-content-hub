@@ -7,6 +7,8 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+import { json, preflight } from "../_shared/cors.ts";
+
 const SYSTEM_AUTHOR_ID = -1; // Zendesk uses -1 for trigger-generated comments.
 
 type Ticket = {
@@ -73,6 +75,23 @@ class Zendesk {
     return out;
   }
 
+  /**
+   * Reopen counts live in the ticket's metric set, not on the ticket. Sideloading them on
+   * show_many costs one call per 100 tickets, where fetching them per ticket would cost
+   * one each.
+   */
+  async reopenCounts(ids: number[]) {
+    const counts = new Map<number, number>();
+    for (let i = 0; i < ids.length; i += 100) {
+      const batch = ids.slice(i, i + 100);
+      const res = await this.get<{ metric_sets?: { ticket_id: number; reopens: number }[] }>(
+        `/api/v2/tickets/show_many.json?ids=${batch.join(",")}&include=metric_sets`,
+      );
+      for (const m of res.metric_sets ?? []) counts.set(m.ticket_id, m.reopens ?? 0);
+    }
+    return counts;
+  }
+
   async comments(ticketId: number) {
     return await this.get<{ comments: Comment[]; users: ZendeskUser[] }>(
       `/api/v2/tickets/${ticketId}/comments.json?include=users&page[size]=100`,
@@ -128,7 +147,10 @@ function stripHtml(s: string) {
     .replace(/\s+/g, " ").trim();
 }
 
-Deno.serve(async () => {
+Deno.serve(async (req) => {
+  const cors = preflight(req);
+  if (cors) return cors;
+
   const started = Date.now();
   const db = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -172,6 +194,10 @@ Deno.serve(async () => {
     .eq("client_id", client.id);
   const knownById = new Map((known ?? []).map((t) => [Number(t.id), t]));
 
+  // Fetched for every open ticket, not only the changed ones: a ticket can be reopened
+  // and land back in this queue without its comment thread changing.
+  const reopens = await zd.reopenCounts(open.map((t) => t.id));
+
   let threadsFetched = 0;
 
   // Fail loudly. A silently dropped write here means the queue ranks on stale data.
@@ -197,6 +223,7 @@ Deno.serve(async () => {
       requester_id: t.requester_id,
       assignee_id: t.assignee_id,
       tags: t.tags ?? [],
+      reopens: reopens.get(t.id) ?? 0,
       zendesk_created_at: t.created_at,
       zendesk_updated_at: t.updated_at,
       solved_at: null,
@@ -281,10 +308,11 @@ Deno.serve(async () => {
   const summary = {
     open_tickets: open.length,
     threads_fetched: threadsFetched,
+    reopened: [...reopens.values()].filter((n) => n > 0).length,
     newly_solved: justSolved.length,
     agents: agents.length,
     ms: Date.now() - started,
   };
   console.log("sync-zendesk", JSON.stringify(summary));
-  return Response.json(summary);
+  return json(summary);
 });

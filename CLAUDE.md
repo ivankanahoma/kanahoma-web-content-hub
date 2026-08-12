@@ -27,7 +27,9 @@ Anthropic ─► enrich-tickets┘         ▲
   in the browser with nothing in the function logs. The cron-driven functions never need
   it.
 - **pg_cron + pg_net** invoke the functions. `sync-zendesk` every 10 minutes,
-  `enrich-tickets` five minutes behind it so it always reads fresh threads.
+  `enrich-tickets` five minutes behind it so it always reads fresh threads. The queue's
+  **Refresh** button runs the same two in the same order on demand, which is why both
+  now answer the CORS preflight too.
 - **The SPA only reads.** Its writes are limited to hub-side judgements: VIP flags,
   manual ETAs, keyword rules, schedules.
 
@@ -135,6 +137,10 @@ sees an empty allowlist, classifies every requester as spam, and gets an empty q
   requester an ETA, which is why ETA tracking matters. `via.source.rel = "merge"` marks
   ticket-merge notices. Both are `author_side = 'system'` and are excluded from every
   reply-timing calculation and from the model's context.
+- **Reopen counts are not on the ticket.** They live in the metric set, sideloaded via
+  `tickets/show_many.json?include=metric_sets` — one call per 100 tickets, fetched for
+  every open ticket rather than only the changed ones, because a ticket can be reopened
+  back into this queue without its comment thread changing.
 - **No structured field is usable.** Across the open queue, `priority` is empty on
   ~90%, `due_at` on 100%, and every custom field (Project, Delayed By, Minutes Worked) on
   100%. All signal lives in free text. The hub does not mirror dead fields.

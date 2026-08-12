@@ -338,6 +338,15 @@ a { color: var(--k-green-700); }
 /* Informational, not an alarm: it says when the request was made, not how urgent it is,
    so it stays in the brand green rather than joining the red/amber escalation. */
 .tag.prelaunch { background: var(--k-green-100); color: var(--k-green-700); }
+.tag.reopened { background: #e6dcef; color: #4b3563; }
+
+/* Answered is the resting state, so it recedes; unanswered is the one to notice. */
+.tag.answered {
+  background: transparent;
+  color: var(--k-green-500);
+  border: 1px solid var(--k-border);
+}
+.tag.unanswered { background: #f3ddd2; color: #82391d; }
 .tag.quiet {
   background: transparent;
   color: var(--k-text-muted);
@@ -395,7 +404,47 @@ a { color: var(--k-green-700); }
   margin-top: 1px;
 }
 .due-kind { font-size: 11px; color: var(--k-text-muted); margin-top: 3px; }
+.due-date { font-size: 11px; color: var(--k-text-muted); }
 .ticket-due.overdue { color: var(--k-overdue); }
+
+.ticket-rail {
+  flex: 0 0 auto;
+  width: 112px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.ticket-rail .ticket-due { width: auto; }
+
+/* A date somebody named out loud reads at full weight. The first-response SLA is a
+   target the hub computed, so it stays quiet: same information, honest hierarchy. */
+.ticket-due.commitment {
+  border-right: 2px solid var(--k-green-500);
+  padding-right: 9px;
+  color: var(--k-green-700);
+}
+.ticket-due.commitment.overdue {
+  border-right-color: var(--k-overdue);
+  color: var(--k-overdue);
+}
+.ticket-due.commitment .due-kind {
+  font-weight: 650;
+  color: var(--k-green-700);
+  text-transform: uppercase;
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+}
+.ticket-due.commitment.overdue .due-kind { color: var(--k-overdue); }
+
+.ticket-due.sla { color: var(--k-text-muted); }
+.ticket-due.sla .due-value { font-size: 15px; font-weight: 600; }
+.ticket-due.sla .due-unit { font-size: 11px; }
+.ticket-due.sla .due-state { font-size: 9px; opacity: 0.8; }
+.ticket-due.sla.overdue { color: var(--k-overdue); opacity: 0.85; }
+
+.sla-note { font-size: 10.5px; color: var(--k-text-muted); text-align: right; }
+.sla-note.overdue { color: var(--k-overdue); }
 
 /* ------------------------------------------------------------------- detail */
 
@@ -913,3 +962,14 @@ a { color: var(--k-green-700); }
 .flag.info { color: var(--k-text-muted); }
 
 .state.error { color: var(--k-overdue); padding: 16px 0; text-align: left; }
+
+/* The two queue views are one control, not two unrelated toggles. */
+.view-switch { margin-right: 2px; }
+.view-switch .chip { border-radius: 6px; }
+.view-switch .chip:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.view-switch .chip:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+
+@keyframes hub-spin { to { transform: rotate(360deg); } }
+.spinning { animation: hub-spin 900ms linear infinite; }
+
+.plain-row .tag { flex: 0 0 auto; }

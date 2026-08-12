@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  Clock,
   Copy,
   ExternalLink,
   Sparkles,
@@ -14,6 +13,7 @@ import {
   DUE_KIND_LABEL,
   EFFORT_LABEL,
   STALLED_ACTIONS,
+  dueParts,
   zendeskUrl,
 } from "../lib/queue";
 import { formatDate, formatDue, pluralDays } from "../lib/format";
@@ -30,7 +30,9 @@ function Pill({ icon: Icon, children, tone = "" }) {
 export default function TicketRow({
   ticket, subdomain, canEdit, onChanged, expanded, onToggle,
 }) {
-  const due = formatDue(ticket.hours_to_due);
+  const { commitment, sla } = dueParts(ticket);
+  const due = commitment ? formatDue(commitment.hours) : null;
+  const slaDue = !commitment && sla ? formatDue(sla.hours) : null;
   const stalled = STALLED_ACTIONS[ticket.stalled_action];
   const waitingOnUs = ticket.waiting_on === "us";
 
@@ -91,7 +93,9 @@ export default function TicketRow({
       className={[
         "ticket",
         expanded ? "expanded" : "",
-        ticket.critical_impact ? "accent-critical" : due?.overdue ? "accent-overdue" : "",
+        ticket.critical_impact
+          ? "accent-critical"
+          : (due?.overdue || slaDue?.overdue) ? "accent-overdue" : "",
       ].filter(Boolean).join(" ")}
     >
       <div
@@ -139,7 +143,22 @@ export default function TicketRow({
               </span>
             )}
 
+            {/* Whether the requester's last message has been picked up. Same fact the
+                waiting chip carries, said the way it gets scanned for. */}
+            <span className={`tag ${ticket.answered ? "answered" : "unanswered"}`}>
+              {ticket.answered ? "Answered" : "Not answered"}
+            </span>
+
             {ticket.critical_impact && <span className="tag critical">Critical</span>}
+            {ticket.reopened && (
+              <span
+                className="tag reopened"
+                title={`Solved and reopened ${ticket.reopens} ` +
+                  `time${ticket.reopens === 1 ? "" : "s"}`}
+              >
+                Reopened
+              </span>
+            )}
             {ticket.is_vip && <span className="tag vip">VIP</span>}
             {stalled && (
               <span
@@ -163,8 +182,8 @@ export default function TicketRow({
               </span>
             )}
 
-            <Pill icon={User}>{ticket.requester_name || "unknown"}</Pill>
-            <Pill icon={Clock}>{pluralDays(ticket.age_days)} old</Pill>
+            {/* The requester's name only earns a chip when it changes what you do. */}
+            {ticket.is_vip && <Pill icon={User}>{ticket.requester_name || "unknown"}</Pill>}
 
             {ticket.assignee_name && (
               <Pill icon={UserCheck} tone="assignee">{ticket.assignee_name}</Pill>
@@ -172,13 +191,40 @@ export default function TicketRow({
           </div>
         </div>
 
-        {due && (
-          <div className={`ticket-due ${due.overdue ? "overdue" : ""}`}>
-            <span className="due-value">
-              {due.value}<span className="due-unit">{due.unit}</span>
-            </span>
-            <span className="due-state">{due.overdue ? "overdue" : "left"}</span>
-            <span className="due-kind">{DUE_KIND_LABEL[ticket.next_due_kind]}</span>
+        {/* A date somebody named out loud outranks a clock the hub computed, so a
+            commitment takes the strong block and the reply SLA drops to a footnote
+            underneath it. Rendering both the same way made every unanswered ticket
+            read as a broken promise. */}
+        {(due || slaDue) && (
+          <div className="ticket-rail">
+            {due && (
+              <div className={`ticket-due commitment ${due.overdue ? "overdue" : ""}`}>
+                <span className="due-value">
+                  {due.value}<span className="due-unit">{due.unit}</span>
+                </span>
+                <span className="due-state">{due.overdue ? "overdue" : "left"}</span>
+                <span className="due-kind">{DUE_KIND_LABEL[commitment.kind]}</span>
+                {commitment.date && (
+                  <span className="due-date">{formatDate(commitment.date)}</span>
+                )}
+              </div>
+            )}
+
+            {due && sla && (
+              <span className={`sla-note ${sla.hours < 0 ? "overdue" : ""}`}>
+                first reply {sla.hours < 0 ? "overdue" : `in ${Math.round(sla.hours)}h`}
+              </span>
+            )}
+
+            {slaDue && (
+              <div className={`ticket-due sla ${slaDue.overdue ? "overdue" : ""}`}>
+                <span className="due-value">
+                  {slaDue.value}<span className="due-unit">{slaDue.unit}</span>
+                </span>
+                <span className="due-state">{slaDue.overdue ? "overdue" : "left"}</span>
+                <span className="due-kind">first reply due</span>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -244,9 +290,17 @@ export default function TicketRow({
             )}
 
             <div>
+              <dt>Requester</dt>
+              <dd>{ticket.requester_name || "unknown"}</dd>
+            </div>
+
+            <div>
               <dt>Thread</dt>
               <dd>
-                {ticket.status} · {ticket.public_comment_count} public comments
+                {ticket.status} · {pluralDays(ticket.age_days)} old ·{" "}
+                {ticket.public_comment_count} public comments
+                {ticket.reopens > 0 &&
+                  ` · reopened ${ticket.reopens}×`}
                 {ticket.trailing_agent_messages > 1 &&
                   ` · ${ticket.trailing_agent_messages} unanswered from us`}
               </dd>

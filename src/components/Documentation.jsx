@@ -83,6 +83,28 @@ const TOPICS = [
           the most overdue sits at the top.
         </p>
 
+        <h4>A commitment is not the reply clock</h4>
+        <p>
+          The three feed the <em>ranking</em> equally, but they do not <em>read</em>
+          equally. A deadline or an ETA is a date somebody named out loud. The
+          first-response SLA is a target the hub computed from when the ticket arrived.
+        </p>
+        <p>
+          So the row shows a commitment at full weight, with a coloured rule, its kind and
+          its date, and drops the reply clock to a grey line underneath. A ticket with no
+          commitment at all shows only the small reply clock. Before this, an unanswered
+          ticket with no promises attached looked exactly like a broken promise.
+        </p>
+
+        <h4>Two ways to cut the list</h4>
+        <p>
+          <strong>By priority</strong> is the ranking above and answers "what next".
+          <strong>By assignee</strong> groups the same filtered tickets by who owns them,
+          your own name first, then the heaviest queues, unassigned last. The ranked view
+          cannot answer "who is carrying what", because one person's work is scattered
+          across every tier.
+        </p>
+
         <h4>What the ordering deliberately ignores</h4>
         <p>
           Zendesk's own <code>priority</code> field and its <code>due_at</code> field are
@@ -119,6 +141,22 @@ const TOPICS = [
         <p>
           The autoresponder and Zendesk's merge notices are excluded from this entirely.
           They are not human replies, so they never make a ticket look answered.
+        </p>
+
+        <h4>Answered, and reopened</h4>
+        <p>
+          Every row also carries an <strong>Answered</strong> or <strong>Not answered</strong>
+          badge: whether our last public message came after theirs. A ticket nobody has
+          replied to at all is Not answered whatever its status says. It is the same fact
+          the waiting chip carries, put the way it actually gets scanned for, and it is
+          what <strong>Recent activity</strong> was missing: a list of who wrote recently
+          is only useful if it also says whether anyone picked it up.
+        </p>
+        <p>
+          <strong>Reopened</strong> comes from Zendesk's own ticket metrics, not from a
+          guess. It means the ticket was solved and came back, which is work we thought was
+          finished and is not. There is no field for it on the ticket itself, so it is
+          sideloaded from the metric set at sync.
         </p>
 
         <h4>When the requester goes quiet</h4>
@@ -300,6 +338,12 @@ const TOPICS = [
           <li><strong>Five minutes later</strong> anything whose thread actually changed is re-analysed. An idle ticket costs nothing.</li>
           <li><strong>Solved tickets</strong> stay visible for seven days, then drop out.</li>
         </ul>
+        <p>
+          <strong>Refresh</strong> in the queue toolbar runs both steps immediately rather
+          than waiting for the next scheduled one. Close five tickets in as many minutes
+          and the queue agrees straight away. It pulls first and re-reads second, in that
+          order, so the model never analyses a thread the sync has not caught up with.
+        </p>
         <p>
           Reply drafts are generated only when you ask for one, and are never sent. You
           copy them into Zendesk yourself.

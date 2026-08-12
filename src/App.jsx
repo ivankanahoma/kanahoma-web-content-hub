@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { supabase } from "./lib/supabase";
+import { invokeFunction } from "./lib/invoke";
 import { TIERS, sortQueue } from "./lib/queue";
 import { SECTION_BY_ID, homeSectionFor, sectionsFor } from "./lib/sections";
 import Login from "./components/Login";
@@ -42,9 +44,13 @@ export default function App() {
     () => localStorage.getItem(COLLAPSED_KEY) === "1",
   );
   const [search, setSearch] = useState("");
+  const [view, setView] = useState("priority"); // priority | assignee
   const [mineOnly, setMineOnly] = useState(false);
   const [overdueOnly, setOverdueOnly] = useState(false);
+  const [newOnly, setNewOnly] = useState(false);
+  const [reopenedOnly, setReopenedOnly] = useState(false);
   const [waitingFilter, setWaitingFilter] = useState(null); // null | us | them
+  const [refreshing, setRefreshing] = useState(null); // null | pulling | reading
   const [expandedId, setExpandedId] = useState(null);
   const [myAgentId, setMyAgentId] = useState(null);
   const [busyId, setBusyId] = useState(null);
@@ -172,6 +178,32 @@ export default function App() {
     }
   }, [reloadQueue]);
 
+  /**
+   * Pull from Zendesk on demand, then re-read the threads that changed. Closing five
+   * tickets and waiting ten minutes for the queue to agree is the thing this avoids.
+   * Enrichment follows the sync rather than running beside it, so it reads fresh threads.
+   */
+  const refreshNow = useCallback(async () => {
+    setError(null);
+    try {
+      setRefreshing("pulling");
+      await invokeFunction("sync-zendesk", {});
+      setRefreshing("reading");
+      await invokeFunction("enrich-tickets", {});
+      await reloadQueue();
+      const [done, acts] = await Promise.all([
+        supabase.from("recently_resolved").select("*"),
+        supabase.from("ticket_activity").select("*"),
+      ]);
+      setResolved(done.data ?? []);
+      setActivity(acts.data ?? []);
+    } catch (e) {
+      setError(`Refresh failed: ${e.message}`);
+    } finally {
+      setRefreshing(null);
+    }
+  }, [reloadQueue]);
+
   const isOverdue = (t) => t.hours_to_due != null && t.hours_to_due < 0;
   const isWaitingOnThem = (t) => t.waiting_on === "requester";
 
@@ -182,6 +214,8 @@ export default function App() {
     return sortQueue(
       tickets.filter((t) => {
         if (overdueOnly && !isOverdue(t)) return false;
+        if (newOnly && t.status !== "new") return false;
+        if (reopenedOnly && !t.reopened) return false;
         if (waitingFilter === "us" && t.waiting_on !== "us") return false;
         if (waitingFilter === "them" && t.waiting_on !== "requester") return false;
         // Guard on myAgentId: without it, String(null) === String(null) would make
@@ -194,18 +228,47 @@ export default function App() {
           .some((field) => field.toLowerCase().includes(term));
       }),
     );
-  }, [tickets, search, mineOnly, overdueOnly, waitingFilter, myAgentId]);
+  }, [tickets, search, mineOnly, overdueOnly, newOnly, reopenedOnly, waitingFilter,
+      myAgentId]);
 
+  /**
+   * Two ways to cut the same list. By priority answers "what next"; by assignee answers
+   * "who is carrying what", which the ranked view cannot show because one person's work
+   * is scattered across every tier.
+   */
   const grouped = useMemo(() => {
+    if (view === "assignee") {
+      const byAgent = new Map();
+      for (const t of visible) {
+        const key = t.assignee_name ?? "Unassigned";
+        if (!byAgent.has(key)) byAgent.set(key, []);
+        byAgent.get(key).push(t);
+      }
+      const mine = myAgentId == null
+        ? null
+        : visible.find((t) => String(t.assignee_id) === String(myAgentId))?.assignee_name;
+
+      // Your own name first, then the heaviest queues, then whatever nobody owns.
+      return [...byAgent.entries()].sort(([a, ra], [b, rb]) => {
+        if (a === mine) return -1;
+        if (b === mine) return 1;
+        if (a === "Unassigned") return 1;
+        if (b === "Unassigned") return -1;
+        return rb.length - ra.length;
+      });
+    }
+
     const byTier = new Map();
     for (const t of visible) {
       if (!byTier.has(t.tier)) byTier.set(t.tier, []);
       byTier.get(t.tier).push(t);
     }
     return [...byTier.entries()].sort((a, b) => a[0] - b[0]);
-  }, [visible]);
+  }, [visible, view, myAgentId]);
 
   const overdueCount = tickets?.filter(isOverdue).length ?? 0;
+  const newCount = tickets?.filter((t) => t.status === "new").length ?? 0;
+  const reopenedCount = tickets?.filter((t) => t.reopened).length ?? 0;
   const onThemCount = tickets?.filter(isWaitingOnThem).length ?? 0;
   const onUsCount = tickets?.filter((t) => t.waiting_on === "us").length ?? 0;
   const mineCount = myAgentId == null
@@ -275,12 +338,47 @@ export default function App() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
+              <span className="chip-pair view-switch">
+                <button
+                  className="chip"
+                  aria-pressed={view === "priority"}
+                  onClick={() => setView("priority")}
+                  title="Ranked by what breaches first"
+                >
+                  By priority
+                </button>
+                <button
+                  className="chip"
+                  aria-pressed={view === "assignee"}
+                  onClick={() => setView("assignee")}
+                  title="Grouped by who it is assigned to"
+                >
+                  By assignee
+                </button>
+              </span>
+
               <button
                 className="chip danger"
                 aria-pressed={overdueOnly}
                 onClick={() => setOverdueOnly((v) => !v)}
               >
                 Overdue <span className="count">{overdueCount}</span>
+              </button>
+              <button
+                className="chip"
+                aria-pressed={newOnly}
+                onClick={() => setNewOnly((v) => !v)}
+                title="Nobody has touched these yet"
+              >
+                New <span className="count">{newCount}</span>
+              </button>
+              <button
+                className="chip"
+                aria-pressed={reopenedOnly}
+                onClick={() => setReopenedOnly((v) => !v)}
+                title="Solved once and came back"
+              >
+                Reopened <span className="count">{reopenedCount}</span>
               </button>
               <span className="chip-pair">
                 <button
@@ -312,6 +410,23 @@ export default function App() {
               <span className="count-note">
                 {visible.length} of {tickets?.length ?? 0} tickets
               </span>
+              {canEdit && (
+                <button
+                  className="chip"
+                  onClick={refreshNow}
+                  disabled={refreshing != null}
+                  title="Pull from Zendesk now instead of waiting for the next run"
+                >
+                  <RefreshCw
+                    size={13}
+                    className={refreshing ? "spinning" : undefined}
+                    strokeWidth={2}
+                  />
+                  {refreshing === "pulling" ? "Pulling from Zendesk…"
+                    : refreshing === "reading" ? "Reading new replies…"
+                    : "Refresh"}
+                </button>
+              )}
             </div>
           )}
 
@@ -332,10 +447,18 @@ export default function App() {
                 {tickets?.length > 0 && visible.length === 0 && (
                   <div className="state">Nothing matches those filters.</div>
                 )}
-                {grouped.map(([tier, rows]) => {
-                  const meta = TIERS[tier] ?? { label: `Tier ${tier}`, tone: "normal" };
+                {grouped.map(([key, rows]) => {
+                  const meta = view === "assignee"
+                    ? {
+                      label: key,
+                      tone: key === "Unassigned" ? "muted" : "normal",
+                      hint: key === "Unassigned"
+                        ? "Nobody owns these yet"
+                        : "In queue order, highest priority first",
+                    }
+                    : TIERS[key] ?? { label: `Tier ${key}`, tone: "normal" };
                   return (
-                    <section key={tier}>
+                    <section key={key}>
                       <div className={`tier-heading ${meta.tone}`}>
                         <h2>{meta.label}</h2>
                         <span className="n">{rows.length}</span>

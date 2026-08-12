@@ -56,6 +56,37 @@ export const DUE_KIND_LABEL = {
 };
 
 /**
+ * A commitment and the reply clock are not the same kind of debt, so the row shows them
+ * differently. A deadline or an ETA is a date somebody named out loud; the first-response
+ * SLA is a service target the hub computed. Rendering both at the same weight made every
+ * unanswered ticket look like a broken promise.
+ */
+export function dueParts(ticket) {
+  const commitment = ticket.hours_to_commitment != null
+    ? {
+      hours: Number(ticket.hours_to_commitment),
+      kind: ticket.eta_at != null &&
+        (ticket.requester_deadline_at == null ||
+         new Date(ticket.eta_at) <= new Date(ticket.requester_deadline_at))
+        ? "promised_eta"
+        : "requester_deadline",
+      date: ticket.requester_deadline_at != null &&
+        (ticket.eta_at == null ||
+         new Date(ticket.requester_deadline_at) < new Date(ticket.eta_at))
+        ? ticket.requester_deadline
+        : ticket.eta_date,
+    }
+    : null;
+
+  // Only worth showing once a commitment is already on screen if it is still open.
+  const sla = ticket.first_response_due_at != null
+    ? { hours: (new Date(ticket.first_response_due_at) - Date.now()) / 36e5 }
+    : null;
+
+  return { commitment, sla };
+}
+
+/**
  * Tier first, then whatever breaches soonest. Sorting inside a tier by time rather than
  * by the kind of commitment is what stops a deadline two days out from outranking an ETA
  * due in two hours. Already-breached items carry negative hours, so the worst offender

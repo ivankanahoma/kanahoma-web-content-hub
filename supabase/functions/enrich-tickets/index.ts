@@ -11,6 +11,8 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+import { json, preflight } from "../_shared/cors.ts";
+
 const MODEL = "claude-sonnet-5";
 const BATCH_SIZE = 15;
 const CONCURRENCY = 5;
@@ -284,7 +286,10 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R
   return out;
 }
 
-Deno.serve(async () => {
+Deno.serve(async (req) => {
+  const cors = preflight(req);
+  if (cors) return cors;
+
   const started = Date.now();
   const db = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -393,5 +398,5 @@ Deno.serve(async () => {
     ms: Date.now() - started,
   };
   console.log("enrich-tickets", JSON.stringify(summary));
-  return Response.json(summary);
+  return json(summary);
 });
