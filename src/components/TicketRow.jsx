@@ -143,12 +143,8 @@ export default function TicketRow({
               </span>
             )}
 
-            {/* Whether the requester's last message has been picked up. Same fact the
-                waiting chip carries, said the way it gets scanned for. */}
-            <span className={`tag ${ticket.answered ? "answered" : "unanswered"}`}>
-              {ticket.answered ? "Answered" : "Not answered"}
-            </span>
-
+            {/* No answered badge here on purpose: the waiting chip above already says it.
+                It earns its place in Recent activity, which has no waiting chip. */}
             {ticket.critical_impact && <span className="tag critical">Critical</span>}
             {ticket.reopened && (
               <span

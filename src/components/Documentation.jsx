@@ -145,12 +145,15 @@ const TOPICS = [
 
         <h4>Answered, and reopened</h4>
         <p>
-          Every row also carries an <strong>Answered</strong> or <strong>Not answered</strong>
-          badge: whether our last public message came after theirs. A ticket nobody has
-          replied to at all is Not answered whatever its status says. It is the same fact
-          the waiting chip carries, put the way it actually gets scanned for, and it is
-          what <strong>Recent activity</strong> was missing: a list of who wrote recently
-          is only useful if it also says whether anyone picked it up.
+          <strong>Recent activity</strong> carries an <strong>Answered</strong> or
+          <strong> Not answered</strong> badge: whether our last public message came after
+          theirs. A ticket nobody has replied to at all is Not answered whatever its status
+          says. A list of who wrote recently is only useful if it also says whether anyone
+          picked it up.
+        </p>
+        <p>
+          It appears there and not in the queue, where the waiting chip already carries the
+          same fact. Two badges saying one thing is one badge too many.
         </p>
         <p>
           <strong>Reopened</strong> comes from Zendesk's own ticket metrics, not from a
