@@ -24,6 +24,23 @@ import bug from "./assets/kanahoma-bug-green.png";
 import wordmark from "./assets/kanahoma-wordmark-green.png";
 
 const COLLAPSED_KEY = "hub.sidebarCollapsed";
+const FILTERS_KEY = "hub.queueFilters";
+
+/**
+ * How the queue was left last time. Filters are how you narrow 38 tickets to the six you
+ * are actually working, and losing that on every reload made the toolbar feel disposable.
+ * The search box is deliberately not kept: a stale search term hides tickets silently,
+ * where a stale filter chip is visible and lit up.
+ */
+function loadFilters() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) ?? "{}");
+    return saved && typeof saved === "object" ? saved : {};
+  } catch {
+    return {};
+  }
+}
+const SAVED = loadFilters();
 
 export default function App() {
   const [session, setSession] = useState(undefined); // undefined = still checking
@@ -44,16 +61,17 @@ export default function App() {
     () => localStorage.getItem(COLLAPSED_KEY) === "1",
   );
   const [search, setSearch] = useState("");
-  const [view, setView] = useState("priority"); // priority | assignee
-  const [mineOnly, setMineOnly] = useState(false);
-  const [overdueOnly, setOverdueOnly] = useState(false);
-  const [newOnly, setNewOnly] = useState(false);
-  const [reopenedOnly, setReopenedOnly] = useState(false);
-  const [waitingFilter, setWaitingFilter] = useState(null); // null | us | them
+  const [view, setView] = useState(SAVED.view ?? "priority"); // priority | assignee
+  const [mineOnly, setMineOnly] = useState(SAVED.mineOnly ?? false);
+  const [overdueOnly, setOverdueOnly] = useState(SAVED.overdueOnly ?? false);
+  const [newOnly, setNewOnly] = useState(SAVED.newOnly ?? false);
+  const [reopenedOnly, setReopenedOnly] = useState(SAVED.reopenedOnly ?? false);
+  const [waitingFilter, setWaitingFilter] = useState(SAVED.waitingFilter ?? null);
   const [refreshing, setRefreshing] = useState(null); // null | pulling | reading
   const [expandedId, setExpandedId] = useState(null);
   const [myAgentId, setMyAgentId] = useState(null);
   const [busyId, setBusyId] = useState(null);
+  const [agents, setAgents] = useState([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
@@ -66,6 +84,12 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(COLLAPSED_KEY, collapsed ? "1" : "0");
   }, [collapsed]);
+
+  useEffect(() => {
+    localStorage.setItem(FILTERS_KEY, JSON.stringify({
+      view, mineOnly, overdueOnly, newOnly, reopenedOnly, waitingFilter,
+    }));
+  }, [view, mineOnly, overdueOnly, newOnly, reopenedOnly, waitingFilter]);
 
   const reloadQueue = useCallback(async () => {
     const { data } = await supabase.from("ticket_queue").select("*");
@@ -82,7 +106,7 @@ export default function App() {
         supabase.from("app_users").select("*").eq("id", session.user.id).maybeSingle(),
         supabase.from("clients").select("*").eq("slug", "cui").maybeSingle(),
         supabase.from("ticket_queue").select("*"),
-        supabase.from("zendesk_agents").select("id, email"),
+        supabase.from("zendesk_agents").select("id, name, email").order("name"),
         supabase.from("recently_resolved").select("*"),
         supabase.from("ticket_activity").select("*"),
         supabase.from("spam_tickets").select("*"),
@@ -106,6 +130,7 @@ export default function App() {
       setRequesters(people.data ?? []);
       setKeywords(rules.data ?? []);
       setAsanaCount(asana.data?.length ?? 0);
+      setAgents(agents.data ?? []);
       setMyAgentId(
         (agents.data ?? []).find(
           (a) => a.email?.toLowerCase() === session.user.email?.toLowerCase(),
@@ -471,6 +496,7 @@ export default function App() {
                             ticket={t}
                             subdomain={subdomain}
                             canEdit={canEdit}
+                            agents={agents}
                             onChanged={reloadQueue}
                             expanded={expandedId === t.id}
                             onToggle={() =>

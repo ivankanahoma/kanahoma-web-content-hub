@@ -28,7 +28,7 @@ function Pill({ icon: Icon, children, tone = "" }) {
 }
 
 export default function TicketRow({
-  ticket, subdomain, canEdit, onChanged, expanded, onToggle,
+  ticket, subdomain, canEdit, onChanged, expanded, onToggle, agents = [],
 }) {
   const { commitment, sla } = dueParts(ticket);
   const due = commitment ? formatDue(commitment.hours) : null;
@@ -42,6 +42,7 @@ export default function TicketRow({
   const [etaBusy, setEtaBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [problem, setProblem] = useState(null);
+  const [assignBusy, setAssignBusy] = useState(false);
 
   // Only fetch a stored draft once the row is actually opened.
   useEffect(() => {
@@ -80,6 +81,26 @@ export default function TicketRow({
     if (error) setProblem(error.message);
     else await onChanged?.();
     setEtaBusy(false);
+  }
+
+  /**
+   * The one thing the hub writes back to Zendesk. Nothing is updated locally on the way
+   * out: the queue reloads from what Zendesk actually accepted, so a refused change
+   * cannot leave the row claiming an owner it does not have.
+   */
+  async function assignTo(value) {
+    setAssignBusy(true);
+    setProblem(null);
+    try {
+      await invokeFunction("assign-ticket", {
+        ticket_id: ticket.id,
+        assignee_id: value === "" ? null : Number(value),
+      });
+      await onChanged?.();
+    } catch (e) {
+      setProblem(e.message);
+    }
+    setAssignBusy(false);
   }
 
   async function copyDraft() {
@@ -288,6 +309,34 @@ export default function TicketRow({
             <div>
               <dt>Requester</dt>
               <dd>{ticket.requester_name || "unknown"}</dd>
+            </div>
+
+            <div>
+              <dt>Assigned to</dt>
+              <dd>
+                {canEdit ? (
+                  <select
+                    className="assignee-select"
+                    value={ticket.assignee_id ?? ""}
+                    disabled={assignBusy}
+                    onChange={(e) => assignTo(e.target.value)}
+                    aria-label="Assign this ticket"
+                  >
+                    <option value="">Unassigned</option>
+                    {agents.map((a) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  ticket.assignee_name ?? "unassigned"
+                )}
+                {assignBusy && <span className="muted"> saving in Zendesk…</span>}
+                {canEdit && (
+                  <p className="field-note">
+                    This writes to Zendesk. Only Web Team members are listed.
+                  </p>
+                )}
+              </dd>
             </div>
 
             <div>

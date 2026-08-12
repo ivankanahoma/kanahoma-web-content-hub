@@ -973,3 +973,18 @@ a { color: var(--k-green-700); }
 .spinning { animation: hub-spin 900ms linear infinite; }
 
 .plain-row .tag { flex: 0 0 auto; }
+
+.assignee-select {
+  padding: 4px 8px;
+  border: 1px solid var(--k-border);
+  border-radius: 6px;
+  background: var(--k-bg);
+  font: inherit;
+  font-size: 13px;
+  max-width: 240px;
+}
+.assignee-select:focus { outline: 2px solid var(--k-green-300); outline-offset: -1px; }
+.assignee-select:disabled { opacity: 0.5; }
+
+/* Says what a control does before it does it, for the one that leaves the hub. */
+.field-note { margin: 4px 0 0; font-size: 11.5px; color: var(--k-text-muted); }

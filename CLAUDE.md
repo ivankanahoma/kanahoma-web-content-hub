@@ -31,7 +31,19 @@ Anthropic ─► enrich-tickets┘         ▲
   **Refresh** button runs the same two in the same order on demand, which is why both
   now answer the CORS preflight too.
 - **The SPA only reads.** Its writes are limited to hub-side judgements: VIP flags,
-  manual ETAs, keyword rules, schedules.
+  manual ETAs, keyword rules, schedules. The one exception is `assign-ticket`, which
+  PUTs an assignee to Zendesk.
+
+### Writing back to Zendesk
+
+`assign-ticket` is the only function that changes anything in Zendesk. Edge Functions run
+as the service role and **bypass RLS entirely**, so a write endpoint cannot lean on it:
+every signed-in account, viewer and content editor included, reaches the same URL with a
+valid JWT. `_shared/auth.ts -> requireRole` verifies the caller's token with `getUser`
+(never by decoding it) and looks their role up with the service key, because a
+`content_editor` cannot read `app_users` at all and that is indistinguishable from having
+no role. The function refuses an assignee outside the Web Team group and touches nothing
+else on the ticket.
 
 ### Why the front end cannot own the ingest
 

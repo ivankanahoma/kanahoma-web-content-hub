@@ -351,6 +351,21 @@ const TOPICS = [
           Reply drafts are generated only when you ask for one, and are never sent. You
           copy them into Zendesk yourself.
         </p>
+
+        <h4>The one thing the hub writes back</h4>
+        <p>
+          Assigning a ticket is the single exception to read-only. Pick someone in the
+          expanded ticket and the change goes to Zendesk immediately, because an assignee
+          that only existed in the hub would disagree with the system of record within
+          minutes.
+        </p>
+        <p>
+          It is deliberately narrow. Only admins and managers can do it, only Web Team
+          members can be picked, and nothing else on the ticket is touched: no status, no
+          comment, no tags. The permission is checked against your own sign-in inside the
+          function, not taken from the page, because Edge Functions run with full database
+          access and the interface is not what stops anyone.
+        </p>
       </>
     ),
   },
