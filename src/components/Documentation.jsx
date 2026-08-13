@@ -83,6 +83,20 @@ const TOPICS = [
           the most overdue sits at the top.
         </p>
 
+        <h4>A VIP leads its tier</h4>
+        <p>
+          Inside whatever tier it lands in, a flagged requester's ticket sorts first. In
+          Critical that means a VIP's broken page sits above everyone else's, at the very
+          top of the queue. A VIP does not jump a tier: critical still outranks a VIP who
+          is merely overdue, and a pinned ticket still beats both.
+        </p>
+        <p>
+          The <strong>VIP waiting</strong> tier is still there, and now only catches the
+          flagged requesters who have nothing else wrong with their ticket. That was
+          always the gap: flagging someone did nothing for their urgent tickets, only for
+          their quiet ones.
+        </p>
+
         <h4>A commitment is not the reply clock</h4>
         <p>
           The three feed the <em>ranking</em> equally, but they do not <em>read</em>

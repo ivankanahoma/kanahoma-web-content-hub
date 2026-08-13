@@ -92,6 +92,11 @@ export function dueParts(ticket) {
  * due in two hours. Already-breached items carry negative hours, so the worst offender
  * naturally lands on top.
  *
+ * A VIP sorts to the top of whatever tier it lands in. Inside Critical that puts a VIP's
+ * broken page above everyone else's, which is the point: a flagged requester is flagged
+ * because their tickets come first, and a tier of its own only ever caught the VIPs with
+ * nothing else wrong.
+ *
  * `base_tier` breaks ties before the clock does, which only ever matters in the
  * pre-launch bucket: thirty-odd tickets share tier 8, and without their original tier the
  * critical and already-breached ones would be scattered through the pile.
@@ -100,6 +105,7 @@ export function sortQueue(rows) {
   return [...rows].sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
     if (a.tier !== b.tier) return a.tier - b.tier;
+    if (!!a.is_vip !== !!b.is_vip) return a.is_vip ? -1 : 1;
     if (a.base_tier !== b.base_tier) return (a.base_tier ?? 9) - (b.base_tier ?? 9);
 
     const aDue = a.hours_to_due;

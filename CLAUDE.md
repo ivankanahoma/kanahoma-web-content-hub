@@ -83,7 +83,9 @@ deadline two days out ends up above an ETA due in two hours.
 | 8 | Requested pre-launch — filed against a site that no longer exists |
 
 Tier is computed in the `ticket_queue` view; the ordering *inside* a tier is
-`src/lib/queue.js -> sortQueue`.
+`src/lib/queue.js -> sortQueue`, which puts **VIPs first within their tier**. Tier 3 then
+only catches VIPs with nothing else wrong, which is the gap it used to leave: flagging a
+requester did nothing for their critical or overdue tickets.
 
 **Pre-launch outranks every other rule, critical impact included.** The view also exposes
 `base_tier`, the tier a ticket would otherwise have had, and `sortQueue` uses it as the
