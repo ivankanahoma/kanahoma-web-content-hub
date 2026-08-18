@@ -44,7 +44,7 @@ valid JWT. `_shared/auth.ts -> requireRole` verifies the caller's token with `ge
 `content_editor` cannot read `app_users` at all and that is indistinguishable from having
 no role. The function touches nothing else on the ticket.
 
-Assignees come from `zendesk_agents.assignable`, a **hub-side curation of six people**,
+Assignees come from `zendesk_agents.assignable`, a **hub-side curation of seven people**,
 not from group membership: the Zendesk group carries fifteen, including staff who no
 longer work this queue and outside contractors. Sync never names that column in its
 upsert, so the flag survives, and a new group member defaults to not assignable.
@@ -170,6 +170,11 @@ sees an empty allowlist, classifies every requester as spam, and gets an empty q
   `tickets/show_many.json?include=metric_sets` — one call per 100 tickets, fetched for
   every open ticket rather than only the changed ones, because a ticket can be reopened
   back into this queue without its comment thread changing.
+- **"Not a CRM user" is not a scope decision.** Internal notes answering for another
+  team's system say nothing about whether the change is ours. Staff exits and hires are
+  web work: somebody comes off, or goes on, a directory or a bio page. The enrichment
+  prompt forbids concluding that a ticket belongs to another department at all, since the
+  queue is the web team's by definition.
 - **No structured field is usable.** Across the open queue, `priority` is empty on
   ~90%, `due_at` on 100%, and every custom field (Project, Delayed By, Minutes Worked) on
   100%. All signal lives in free text. The hub does not mirror dead fields.

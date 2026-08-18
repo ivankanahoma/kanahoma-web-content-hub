@@ -286,6 +286,22 @@ const TOPICS = [
           The model is instructed never to infer a date, a commitment or a severity that
           nobody wrote down. If it is not in the thread, the field stays empty.
         </p>
+
+        <h4>Everything in this queue is ours</h4>
+        <p>
+          The model is not allowed to conclude that a ticket belongs to another
+          department. It reads a queue that is the web team's by definition, so "this is
+          not for us" is never an available answer.
+        </p>
+        <p>
+          Two things used to mislead it. An internal note answering for somebody else's
+          system — <em>"Not a CRM user"</em>, <em>"no Banner record"</em> — is another team
+          checking their own tools, and says nothing about whether the person appears on
+          cui.edu. And <strong>staff exits and hires are web work</strong>: an exit means
+          somebody has to come off a directory, a staff listing or a bio page, and a new
+          hire means the reverse. Those are summarised as the web change they imply, not
+          as the HR process that triggered them.
+        </p>
       </>
     ),
   },
