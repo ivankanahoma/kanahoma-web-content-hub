@@ -127,10 +127,11 @@ const TOPICS = [
           and launch phase. Everything survives a reload except the search box.
         </p>
         <p>
-          There is no <strong>Overdue</strong> chip: overdue is a tier, so it is already a
-          heading you can scroll to. There is no <strong>Assigned to me</strong> chip
-          either, because the assignee dropdown does that and more. A filter that
-          duplicates something already on screen costs attention and buys nothing.
+          There is no <strong>Overdue</strong> or <strong>Critical</strong> chip: both are
+          tiers, so they are already headings you can scroll to. There is no{" "}
+          <strong>Assigned to me</strong> chip either, because the assignee dropdown does
+          that and more. A filter that duplicates something already on screen costs
+          attention and buys nothing.
         </p>
         <p>
           <strong>No ETA</strong> is the one worth checking daily. The autoresponder

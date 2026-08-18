@@ -64,7 +64,6 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [view, setView] = useState(SAVED.view ?? "priority"); // priority | assignee | due
   const [reopenedOnly, setReopenedOnly] = useState(SAVED.reopenedOnly ?? false);
-  const [criticalOnly, setCriticalOnly] = useState(SAVED.criticalOnly ?? false);
   const [noEtaOnly, setNoEtaOnly] = useState(SAVED.noEtaOnly ?? false);
   const [noReplyOnly, setNoReplyOnly] = useState(SAVED.noReplyOnly ?? false);
   const [waitingFilter, setWaitingFilter] = useState(SAVED.waitingFilter ?? null);
@@ -113,11 +112,11 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem(FILTERS_KEY, JSON.stringify({
-      view, reopenedOnly, criticalOnly, noEtaOnly, noReplyOnly, waitingFilter,
+      view, reopenedOnly, noEtaOnly, noReplyOnly, waitingFilter,
       assigneeFilter, requesterFilter, complexityFilter, effortFilter, knowledgeFilter,
       ageFilter, launchFilter,
     }));
-  }, [view, reopenedOnly, criticalOnly, noEtaOnly, noReplyOnly, waitingFilter,
+  }, [view, reopenedOnly, noEtaOnly, noReplyOnly, waitingFilter,
       assigneeFilter, requesterFilter, complexityFilter, effortFilter, knowledgeFilter,
       ageFilter, launchFilter]);
 
@@ -270,7 +269,6 @@ export default function App() {
     return sortQueue(
       tickets.filter((t) => {
         if (reopenedOnly && !t.reopened) return false;
-        if (criticalOnly && !t.critical_impact) return false;
         // The autoresponder promised every one of these an ETA we never gave.
         if (noEtaOnly && t.eta_date != null) return false;
         if (noReplyOnly && t.first_agent_reply_at != null) return false;
@@ -303,7 +301,7 @@ export default function App() {
           .some((field) => field.toLowerCase().includes(term));
       }),
     );
-  }, [tickets, search, reopenedOnly, criticalOnly, noEtaOnly, noReplyOnly, waitingFilter,
+  }, [tickets, search, reopenedOnly, noEtaOnly, noReplyOnly, waitingFilter,
       assigneeFilter, requesterFilter, complexityFilter, effortFilter, knowledgeFilter,
       ageFilter, launchFilter]);
 
@@ -366,20 +364,19 @@ export default function App() {
   }, [tickets]);
 
   const filtersOn = [
-    reopenedOnly, criticalOnly, noEtaOnly, noReplyOnly, waitingFilter, assigneeFilter,
+    reopenedOnly, noEtaOnly, noReplyOnly, waitingFilter, assigneeFilter,
     requesterFilter, complexityFilter, effortFilter, knowledgeFilter, ageFilter,
     launchFilter,
   ].filter(Boolean).length;
 
   const clearFilters = () => {
-    setReopenedOnly(false); setCriticalOnly(false); setNoEtaOnly(false);
-    setNoReplyOnly(false); setWaitingFilter(null); setAssigneeFilter("");
+    setReopenedOnly(false); setNoEtaOnly(false); setNoReplyOnly(false);
+    setWaitingFilter(null); setAssigneeFilter("");
     setRequesterFilter(""); setComplexityFilter(""); setEffortFilter("");
     setKnowledgeFilter(""); setAgeFilter(""); setLaunchFilter("");
   };
 
   const reopenedCount = tickets?.filter((t) => t.reopened).length ?? 0;
-  const criticalCount = tickets?.filter((t) => t.critical_impact).length ?? 0;
   const noEtaCount = tickets?.filter((t) => t.eta_date == null).length ?? 0;
   const noReplyCount = tickets?.filter((t) => t.first_agent_reply_at == null).length ?? 0;
   const onThemCount = tickets?.filter(isWaitingOnThem).length ?? 0;
@@ -485,14 +482,6 @@ export default function App() {
                   </button>
                 </span>
 
-                <button
-                  className="chip danger"
-                  aria-pressed={criticalOnly}
-                  onClick={() => setCriticalOnly((v) => !v)}
-                  title="Breaking or misleading a student on the live site"
-                >
-                  Critical <span className="count">{criticalCount}</span>
-                </button>
                 <button
                   className="chip"
                   aria-pressed={reopenedOnly}
