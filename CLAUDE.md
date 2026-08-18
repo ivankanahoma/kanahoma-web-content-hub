@@ -171,10 +171,14 @@ sees an empty allowlist, classifies every requester as spam, and gets an empty q
   every open ticket rather than only the changed ones, because a ticket can be reopened
   back into this queue without its comment thread changing.
 - **"Not a CRM user" is not a scope decision.** Internal notes answering for another
-  team's system say nothing about whether the change is ours. Staff exits and hires are
-  web work: somebody comes off, or goes on, a directory or a bio page. The enrichment
-  prompt forbids concluding that a ticket belongs to another department at all, since the
-  queue is the web team's by definition.
+  team's system say nothing about whether the change is ours, and they are often written
+  by other CUI teams despite sitting on our side of the ticket: the one that triggered
+  this rule was authored by a contractor who is in the Zendesk Web Team group but works
+  CRM. The enrichment prompt forbids concluding that a ticket belongs to another
+  department at all, since the queue is the web team's by definition.
+- **Staff and faculty live in a Faculty custom post type.** An exit is deleting that
+  entry, a hire is creating one. There is one known place, so these rate `none` for
+  institutional knowledge rather than reading as a hunt across the site.
 - **No structured field is usable.** Across the open queue, `priority` is empty on
   ~90%, `due_at` on 100%, and every custom field (Project, Delayed By, Minutes Worked) on
   100%. All signal lives in free text. The hub does not mirror dead fields.

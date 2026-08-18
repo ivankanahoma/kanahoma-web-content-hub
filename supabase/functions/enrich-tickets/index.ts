@@ -136,11 +136,15 @@ Two things routinely mislead here:
   - An internal note answering for SOMEBODY ELSE'S system is not a statement about ours.
     "Not a CRM user", "no Banner record", "not in Workday" are other teams checking their
     own systems. They say nothing about whether the person or the change appears on
-    cui.edu.
-  - STAFF EXITS AND HIRES ARE WEB WORK. An exit notice means somebody has to come off the
-    site: a department directory, a staff or faculty listing, a bio page, a programme
-    contact. A new hire means the reverse. Summarise these as the web change they imply,
-    not as the HR or IT process that triggered them.
+    cui.edu. Internal notes on these tickets are often written by staff from other CUI
+    teams, so treat them as one team's answer about one system, never as a ruling on
+    what the web team has to do.
+  - STAFF EXITS AND HIRES ARE WEB WORK, and they are routine. Staff and faculty live in a
+    Faculty custom post type in WordPress, so removing somebody who has left means
+    deleting their entry there, and adding a new hire means creating one. There is a
+    single known place for it: do NOT treat these as needing institutional knowledge, and
+    do not describe them as hunting for where the person appears. Summarise them as the
+    web change they imply, not as the HR or IT process that triggered them.
 
 CRITICAL IMPACT means the live site is right now blocking or misleading a prospective or
 current student. It is a high bar. It applies to:

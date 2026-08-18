@@ -295,12 +295,17 @@ const TOPICS = [
         </p>
         <p>
           Two things used to mislead it. An internal note answering for somebody else's
-          system — <em>"Not a CRM user"</em>, <em>"no Banner record"</em> — is another team
+          system — <em>"Not a CRM user"</em>, <em>"no Banner record"</em> — is one team
           checking their own tools, and says nothing about whether the person appears on
-          cui.edu. And <strong>staff exits and hires are web work</strong>: an exit means
-          somebody has to come off a directory, a staff listing or a bio page, and a new
-          hire means the reverse. Those are summarised as the web change they imply, not
-          as the HR process that triggered them.
+          cui.edu. Those notes are often written by staff from other CUI teams, even
+          though they sit on our side of the ticket.
+        </p>
+        <p>
+          And <strong>staff exits and hires are web work, and routine</strong>. Staff and
+          faculty live in a Faculty custom post type, so an exit is deleting that entry
+          and a hire is creating one. There is a single known place for it, which is why
+          these come out needing <em>no</em> institutional knowledge rather than reading
+          as a hunt for where the person appears.
         </p>
       </>
     ),
