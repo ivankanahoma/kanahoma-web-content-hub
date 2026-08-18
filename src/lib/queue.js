@@ -49,6 +49,18 @@ export const STALLED_ACTIONS = {
 export const COMPLEXITY_LABEL = { easy: "Easy", medium: "Medium", complex: "Complex" };
 export const EFFORT_LABEL = { fast: "Fast", time_consuming: "Time-consuming" };
 
+/**
+ * How much CUI or CMS knowledge the ticket needs beyond what it says. This answers a
+ * different question from complexity: not "how hard is this" but "can I hand it to
+ * someone new?". A one-word deletion and a new article can both be easy and fast, and
+ * only one of them needs somebody who knows which category it takes.
+ */
+export const KNOWLEDGE_LABEL = {
+  none: "No institutional knowledge",
+  some: "Some institutional knowledge",
+  high: "Deep institutional knowledge",
+};
+
 export const DUE_KIND_LABEL = {
   requester_deadline: "requester deadline",
   promised_eta: "our ETA",

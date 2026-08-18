@@ -13,6 +13,7 @@ import {
   COMPLEXITY_LABEL,
   DUE_KIND_LABEL,
   EFFORT_LABEL,
+  KNOWLEDGE_LABEL,
   STALLED_ACTIONS,
   dueParts,
   zendeskUrl,
@@ -201,6 +202,18 @@ export default function TicketRow({
                 {COMPLEXITY_LABEL[ticket.complexity]} · {EFFORT_LABEL[ticket.effort]}
               </span>
             )}
+            {/* Only the levels that mean "not for someone new" earn a chip. Marking the
+                easy ones too would put a badge on every row and say nothing. */}
+            {(ticket.institutional_knowledge === "some" ||
+              ticket.institutional_knowledge === "high") && (
+              <span
+                className={`tag knowledge ${ticket.institutional_knowledge}`}
+                title={KNOWLEDGE_LABEL[ticket.institutional_knowledge]}
+              >
+                {ticket.institutional_knowledge === "high" ? "Deep CUI knowledge"
+                                                          : "Some CUI knowledge"}
+              </span>
+            )}
 
             {/* The requester's name only earns a chip when it changes what you do. */}
             {ticket.is_vip && <Pill icon={User}>{ticket.requester_name || "unknown"}</Pill>}
@@ -240,6 +253,12 @@ export default function TicketRow({
               <Pill icon={UserPlus} tone="unassigned">Unassigned</Pill>
             )}
           </div>
+
+          {ticket.institutional_knowledge_note && (
+            <p className="knowledge-note">
+              <span>Needs to know</span> {ticket.institutional_knowledge_note}
+            </p>
+          )}
         </div>
 
         {/* A date somebody named out loud outranks a clock the hub computed, so a

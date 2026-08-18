@@ -82,6 +82,13 @@ deadline two days out ends up above an ETA due in two hours.
 | 7 | Waiting on the requester — never urgent |
 | 8 | Requested pre-launch — filed against a site that no longer exists |
 
+The queue offers three cuts of the same filtered list: **By priority** (the ranking),
+**By assignee** (who is carrying what) and **By due date** (a flat calendar view). Filters
+persist in `localStorage`; the search box deliberately does not, because a stale search
+term hides tickets silently where a lit-up chip does not. There is no Overdue or Assigned
+to me chip: overdue is already a tier heading, and the assignee dropdown is a superset of
+the second.
+
 Tier is computed in the `ticket_queue` view; the ordering *inside* a tier is
 `src/lib/queue.js -> sortQueue`, which puts **VIPs first within their tier**. Tier 3 then
 only catches VIPs with nothing else wrong, which is the gap it used to leave: flagging a
@@ -115,7 +122,11 @@ Schema lives in `supabase/migrations/`, applied in filename order. Key tables:
   ingest so the UI never scans comments.
 - `ticket_insights` — one row per ticket, replaced when `content_hash` changes.
   **`ai_critical_impact` holds the model's own verdict, untouched.** Keyword rules layer
-  on top at read time; they never overwrite it.
+  on top at read time; they never overwrite it. `institutional_knowledge`
+  (`none`/`some`/`high`) plus a one-line note answers a question complexity does not:
+  *can this be handed to someone new?* The two come apart often — "remove the hyperlinks
+  below" is easy, fast and needs deep knowledge, because the requester never said which
+  page.
 - `ticket_etas` — append-only history of every date we promised. Latest wins.
 - `urgency_rules` — optional keyword overrides, evaluated by the view, so editing one
   re-ranks the queue instantly with no re-analysis and no tokens.

@@ -24,6 +24,13 @@ export default function RecentActivity({ activity, resolved, subdomain }) {
       .slice(0, LIMIT),
   [activity]);
 
+  // Postgres returns view rows in no guaranteed order, so "recently" has to be enforced
+  // here rather than assumed.
+  const recentlyResolved = useMemo(() =>
+    [...(resolved ?? [])].sort((a, b) =>
+      String(b.solved_at ?? "").localeCompare(String(a.solved_at ?? ""))),
+  [resolved]);
+
   /** The number is the thing people reach for, so it is the link. */
   const ticketLink = (id) => (
     <a className="id ticket-id" href={zendeskUrl(subdomain, id)}
@@ -71,11 +78,11 @@ export default function RecentActivity({ activity, resolved, subdomain }) {
       <Block
         title="Recently resolved"
         blurb="Solved in the last 7 days, then dropped. Not work to do."
-        rows={resolved ?? []}
+        rows={recentlyResolved}
         empty="Nothing resolved in the last 7 days."
       >
         <div className="plain-list">
-          {(resolved ?? []).map((r) => (
+          {recentlyResolved.map((r) => (
             <div className="plain-row" key={r.id}>
               <CheckCircle2 size={14} strokeWidth={1.75} className="resolved-tick" />
               {ticketLink(r.id)}

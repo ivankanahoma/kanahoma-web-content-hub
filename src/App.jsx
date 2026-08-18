@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { Download, RefreshCw } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import { invokeFunction } from "./lib/invoke";
+import { downloadCsv } from "./lib/csv";
 import { TIERS, sortQueue } from "./lib/queue";
 import { SECTION_BY_ID, homeSectionFor, sectionsFor } from "./lib/sections";
 import Login from "./components/Login";
@@ -61,17 +62,42 @@ export default function App() {
     () => localStorage.getItem(COLLAPSED_KEY) === "1",
   );
   const [search, setSearch] = useState("");
-  const [view, setView] = useState(SAVED.view ?? "priority"); // priority | assignee
-  const [mineOnly, setMineOnly] = useState(SAVED.mineOnly ?? false);
-  const [overdueOnly, setOverdueOnly] = useState(SAVED.overdueOnly ?? false);
-  const [newOnly, setNewOnly] = useState(SAVED.newOnly ?? false);
+  const [view, setView] = useState(SAVED.view ?? "priority"); // priority | assignee | due
   const [reopenedOnly, setReopenedOnly] = useState(SAVED.reopenedOnly ?? false);
+  const [criticalOnly, setCriticalOnly] = useState(SAVED.criticalOnly ?? false);
+  const [noEtaOnly, setNoEtaOnly] = useState(SAVED.noEtaOnly ?? false);
+  const [noReplyOnly, setNoReplyOnly] = useState(SAVED.noReplyOnly ?? false);
   const [waitingFilter, setWaitingFilter] = useState(SAVED.waitingFilter ?? null);
+  // Dropdowns: "" means the filter is off.
+  const [assigneeFilter, setAssigneeFilter] = useState(SAVED.assigneeFilter ?? "");
+  const [requesterFilter, setRequesterFilter] = useState(SAVED.requesterFilter ?? "");
+  const [complexityFilter, setComplexityFilter] = useState(SAVED.complexityFilter ?? "");
+  const [effortFilter, setEffortFilter] = useState(SAVED.effortFilter ?? "");
+  const [knowledgeFilter, setKnowledgeFilter] = useState(SAVED.knowledgeFilter ?? "");
+  const [ageFilter, setAgeFilter] = useState(SAVED.ageFilter ?? "");
+  const [launchFilter, setLaunchFilter] = useState(SAVED.launchFilter ?? "");
   const [refreshing, setRefreshing] = useState(null); // null | pulling | reading
   const [expandedId, setExpandedId] = useState(null);
   const [myAgentId, setMyAgentId] = useState(null);
   const [busyId, setBusyId] = useState(null);
   const [agents, setAgents] = useState([]);
+
+  /**
+   * The tier headings stick below the toolbar, and the toolbar's height changes with the
+   * window: two rows on a wide screen, three or four when the filters wrap. Measuring it
+   * beats guessing an offset that is wrong at every other width.
+   */
+  const toolbarRef = useRef(null);
+  useEffect(() => {
+    const el = toolbarRef.current;
+    if (!el) return;
+    const apply = () => document.documentElement.style.setProperty(
+      "--queue-sticky-top", `${Math.round(el.getBoundingClientRect().height) + 47}px`);
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [section]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
@@ -87,9 +113,13 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem(FILTERS_KEY, JSON.stringify({
-      view, mineOnly, overdueOnly, newOnly, reopenedOnly, waitingFilter,
+      view, reopenedOnly, criticalOnly, noEtaOnly, noReplyOnly, waitingFilter,
+      assigneeFilter, requesterFilter, complexityFilter, effortFilter, knowledgeFilter,
+      ageFilter, launchFilter,
     }));
-  }, [view, mineOnly, overdueOnly, newOnly, reopenedOnly, waitingFilter]);
+  }, [view, reopenedOnly, criticalOnly, noEtaOnly, noReplyOnly, waitingFilter,
+      assigneeFilter, requesterFilter, complexityFilter, effortFilter, knowledgeFilter,
+      ageFilter, launchFilter]);
 
   const reloadQueue = useCallback(async () => {
     const { data } = await supabase.from("ticket_queue").select("*");
@@ -231,7 +261,6 @@ export default function App() {
     }
   }, [reloadQueue]);
 
-  const isOverdue = (t) => t.hours_to_due != null && t.hours_to_due < 0;
   const isWaitingOnThem = (t) => t.waiting_on === "requester";
 
   const visible = useMemo(() => {
@@ -240,23 +269,43 @@ export default function App() {
 
     return sortQueue(
       tickets.filter((t) => {
-        if (overdueOnly && !isOverdue(t)) return false;
-        if (newOnly && t.status !== "new") return false;
         if (reopenedOnly && !t.reopened) return false;
+        if (criticalOnly && !t.critical_impact) return false;
+        // The autoresponder promised every one of these an ETA we never gave.
+        if (noEtaOnly && t.eta_date != null) return false;
+        if (noReplyOnly && t.first_agent_reply_at != null) return false;
         if (waitingFilter === "us" && t.waiting_on !== "us") return false;
         if (waitingFilter === "them" && t.waiting_on !== "requester") return false;
-        // Guard on myAgentId: without it, String(null) === String(null) would make
-        // "assigned to me" quietly mean "unassigned".
-        if (mineOnly && (myAgentId == null || String(t.assignee_id) !== String(myAgentId)))
+
+        // "unassigned" is a real choice here, so it cannot share the empty string with
+        // "no filter": String(null) === String(null) would quietly conflate the two.
+        if (assigneeFilter === "unassigned" && t.assignee_id != null) return false;
+        if (assigneeFilter && assigneeFilter !== "unassigned" &&
+            String(t.assignee_id) !== String(assigneeFilter)) return false;
+        if (requesterFilter && String(t.requester_id) !== String(requesterFilter))
           return false;
+
+        if (complexityFilter && t.complexity !== complexityFilter) return false;
+        if (effortFilter && t.effort !== effortFilter) return false;
+        if (knowledgeFilter && t.institutional_knowledge !== knowledgeFilter) return false;
+        if (launchFilter === "pre" && !t.requested_pre_launch) return false;
+        if (launchFilter === "post" && t.requested_pre_launch) return false;
+
+        const age = t.age_days ?? 0;
+        if (ageFilter === "lt3" && age >= 3) return false;
+        if (ageFilter === "gt5" && age <= 5) return false;
+        if (ageFilter === "gt15" && age <= 15) return false;
+        if (ageFilter === "gt30" && age <= 30) return false;
+
         if (!term) return true;
         return [t.subject, t.summary, t.requester_name, String(t.id)]
           .filter(Boolean)
           .some((field) => field.toLowerCase().includes(term));
       }),
     );
-  }, [tickets, search, mineOnly, overdueOnly, newOnly, reopenedOnly, waitingFilter,
-      myAgentId]);
+  }, [tickets, search, reopenedOnly, criticalOnly, noEtaOnly, noReplyOnly, waitingFilter,
+      assigneeFilter, requesterFilter, complexityFilter, effortFilter, knowledgeFilter,
+      ageFilter, launchFilter]);
 
   /**
    * Two ways to cut the same list. By priority answers "what next"; by assignee answers
@@ -264,6 +313,18 @@ export default function App() {
    * is scattered across every tier.
    */
   const grouped = useMemo(() => {
+    // One flat list, soonest commitment first. Deliberately ignores the tiers: it is the
+    // calendar view, for "what is landing this week" rather than "what next".
+    if (view === "due") {
+      const withDate = visible.filter((t) => t.hours_to_due != null)
+        .sort((a, b) => a.hours_to_due - b.hours_to_due);
+      const without = visible.filter((t) => t.hours_to_due == null)
+        .sort((a, b) => (b.age_days ?? 0) - (a.age_days ?? 0));
+      return [
+        ...(withDate.length ? [["Has a date", withDate]] : []),
+        ...(without.length ? [["No date attached", without]] : []),
+      ];
+    }
     if (view === "assignee") {
       const byAgent = new Map();
       for (const t of visible) {
@@ -293,14 +354,36 @@ export default function App() {
     return [...byTier.entries()].sort((a, b) => a[0] - b[0]);
   }, [visible, view, myAgentId]);
 
-  const overdueCount = tickets?.filter(isOverdue).length ?? 0;
-  const newCount = tickets?.filter((t) => t.status === "new").length ?? 0;
+  /** Requesters who actually have something open, so the filter is never a dead list. */
+  const requestersInQueue = useMemo(() => {
+    const seen = new Map();
+    for (const t of tickets ?? []) {
+      if (t.requester_id != null && !seen.has(t.requester_id)) {
+        seen.set(t.requester_id, t.requester_name ?? `Requester ${t.requester_id}`);
+      }
+    }
+    return [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [tickets]);
+
+  const filtersOn = [
+    reopenedOnly, criticalOnly, noEtaOnly, noReplyOnly, waitingFilter, assigneeFilter,
+    requesterFilter, complexityFilter, effortFilter, knowledgeFilter, ageFilter,
+    launchFilter,
+  ].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setReopenedOnly(false); setCriticalOnly(false); setNoEtaOnly(false);
+    setNoReplyOnly(false); setWaitingFilter(null); setAssigneeFilter("");
+    setRequesterFilter(""); setComplexityFilter(""); setEffortFilter("");
+    setKnowledgeFilter(""); setAgeFilter(""); setLaunchFilter("");
+  };
+
   const reopenedCount = tickets?.filter((t) => t.reopened).length ?? 0;
+  const criticalCount = tickets?.filter((t) => t.critical_impact).length ?? 0;
+  const noEtaCount = tickets?.filter((t) => t.eta_date == null).length ?? 0;
+  const noReplyCount = tickets?.filter((t) => t.first_agent_reply_at == null).length ?? 0;
   const onThemCount = tickets?.filter(isWaitingOnThem).length ?? 0;
   const onUsCount = tickets?.filter((t) => t.waiting_on === "us").length ?? 0;
-  const mineCount = myAgentId == null
-    ? 0
-    : tickets?.filter((t) => String(t.assignee_id) === String(myAgentId)).length ?? 0;
 
   const counts = {
     queue: tickets?.length ?? 0,
@@ -358,102 +441,212 @@ export default function App() {
 
         <div className="content">
           {section === "queue" && (
-            <div className="toolbar">
-              <input
-                className="search"
-                placeholder="Search subject, summary, requester or ticket id…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <span className="chip-pair view-switch">
-                <button
-                  className="chip"
-                  aria-pressed={view === "priority"}
-                  onClick={() => setView("priority")}
-                  title="Ranked by what breaches first"
-                >
-                  By priority
-                </button>
-                <button
-                  className="chip"
-                  aria-pressed={view === "assignee"}
-                  onClick={() => setView("assignee")}
-                  title="Grouped by who it is assigned to"
-                >
-                  By assignee
-                </button>
-              </span>
+            <div className="toolbar" ref={toolbarRef}>
+              <div className="toolbar-row">
+                <input
+                  className="search"
+                  placeholder="Search subject, summary, requester or ticket id…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <span className="chip-pair view-switch">
+                  {[["priority", "By priority", "Ranked by what breaches first"],
+                    ["assignee", "By assignee", "Grouped by who owns it"],
+                    ["due", "By due date", "Flat calendar view, soonest first"]]
+                    .map(([id, label, hint]) => (
+                      <button
+                        key={id}
+                        className="chip"
+                        aria-pressed={view === id}
+                        onClick={() => setView(id)}
+                        title={hint}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                </span>
 
-              <button
-                className="chip danger"
-                aria-pressed={overdueOnly}
-                onClick={() => setOverdueOnly((v) => !v)}
-              >
-                Overdue <span className="count">{overdueCount}</span>
-              </button>
-              <button
-                className="chip"
-                aria-pressed={newOnly}
-                onClick={() => setNewOnly((v) => !v)}
-                title="Nobody has touched these yet"
-              >
-                New <span className="count">{newCount}</span>
-              </button>
-              <button
-                className="chip"
-                aria-pressed={reopenedOnly}
-                onClick={() => setReopenedOnly((v) => !v)}
-                title="Solved once and came back"
-              >
-                Reopened <span className="count">{reopenedCount}</span>
-              </button>
-              <span className="chip-pair">
+                <span className="chip-pair">
+                  <button
+                    className="chip solid"
+                    aria-pressed={waitingFilter === "us"}
+                    onClick={() => toggleWaiting("us")}
+                    title="Tickets we can act on right now"
+                  >
+                    Waiting on us <span className="count">{onUsCount}</span>
+                  </button>
+                  <button
+                    className="chip"
+                    aria-pressed={waitingFilter === "them"}
+                    onClick={() => toggleWaiting("them")}
+                    title="Blocked on the requester"
+                  >
+                    Waiting on them <span className="count">{onThemCount}</span>
+                  </button>
+                </span>
+
                 <button
-                  className="chip solid"
-                  aria-pressed={waitingFilter === "us"}
-                  onClick={() => toggleWaiting("us")}
-                  title="Tickets we can act on right now"
+                  className="chip danger"
+                  aria-pressed={criticalOnly}
+                  onClick={() => setCriticalOnly((v) => !v)}
+                  title="Breaking or misleading a student on the live site"
                 >
-                  Waiting on us <span className="count">{onUsCount}</span>
+                  Critical <span className="count">{criticalCount}</span>
                 </button>
                 <button
                   className="chip"
-                  aria-pressed={waitingFilter === "them"}
-                  onClick={() => toggleWaiting("them")}
-                  title="Blocked on the requester"
+                  aria-pressed={reopenedOnly}
+                  onClick={() => setReopenedOnly((v) => !v)}
+                  title="Solved once and came back"
                 >
-                  Waiting on them <span className="count">{onThemCount}</span>
+                  Reopened <span className="count">{reopenedCount}</span>
                 </button>
-              </span>
-              <button
-                className="chip"
-                aria-pressed={mineOnly}
-                onClick={() => setMineOnly((v) => !v)}
-                disabled={myAgentId == null}
-                title={myAgentId == null ? "No Zendesk agent matches your email" : undefined}
-              >
-                Assigned to me <span className="count">{mineCount}</span>
-              </button>
-              <span className="count-note">
-                {visible.length} of {tickets?.length ?? 0} tickets
-              </span>
-              {canEdit && (
                 <button
                   className="chip"
-                  onClick={refreshNow}
-                  disabled={refreshing != null}
-                  title="Pull from Zendesk now instead of waiting for the next run"
+                  aria-pressed={noEtaOnly}
+                  onClick={() => setNoEtaOnly((v) => !v)}
+                  title="The autoresponder promised them an ETA we never gave"
                 >
-                  <RefreshCw
-                    size={13}
-                    className={refreshing ? "spinning" : undefined}
-                    strokeWidth={2}
-                  />
-                  {refreshing === "pulling" ? "Pulling from Zendesk…"
-                    : refreshing === "reading" ? "Reading new replies…"
-                    : "Refresh"}
+                  No ETA <span className="count">{noEtaCount}</span>
                 </button>
-              )}
+                <button
+                  className="chip"
+                  aria-pressed={noReplyOnly}
+                  onClick={() => setNoReplyOnly((v) => !v)}
+                  title="Nobody on the team has replied yet"
+                >
+                  No human reply <span className="count">{noReplyCount}</span>
+                </button>
+              </div>
+
+              <div className="toolbar-row secondary">
+                <select
+                  className="filter-select"
+                  value={assigneeFilter}
+                  onChange={(e) => setAssigneeFilter(e.target.value)}
+                  aria-label="Filter by assignee"
+                >
+                  <option value="">Anyone assigned</option>
+                  <option value="unassigned">Unassigned</option>
+                  {agents.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.id === myAgentId ? `${a.name} (me)` : a.name}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="filter-select"
+                  value={requesterFilter}
+                  onChange={(e) => setRequesterFilter(e.target.value)}
+                  aria-label="Filter by requester"
+                >
+                  <option value="">Any requester</option>
+                  {requestersInQueue.map(([id, name]) => (
+                    <option key={id} value={id}>{name}</option>
+                  ))}
+                </select>
+
+                <select
+                  className="filter-select"
+                  value={knowledgeFilter}
+                  onChange={(e) => setKnowledgeFilter(e.target.value)}
+                  aria-label="Filter by institutional knowledge"
+                  title="How much CUI or CMS knowledge the ticket needs beyond its own text"
+                >
+                  <option value="">Any knowledge level</option>
+                  <option value="none">No institutional knowledge</option>
+                  <option value="some">Some institutional knowledge</option>
+                  <option value="high">Deep institutional knowledge</option>
+                </select>
+
+                <select
+                  className="filter-select"
+                  value={complexityFilter}
+                  onChange={(e) => setComplexityFilter(e.target.value)}
+                  aria-label="Filter by complexity"
+                >
+                  <option value="">Any complexity</option>
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="complex">Complex</option>
+                </select>
+
+                <select
+                  className="filter-select"
+                  value={effortFilter}
+                  onChange={(e) => setEffortFilter(e.target.value)}
+                  aria-label="Filter by effort"
+                >
+                  <option value="">Any effort</option>
+                  <option value="fast">Fast</option>
+                  <option value="time_consuming">Time-consuming</option>
+                </select>
+
+                <select
+                  className="filter-select"
+                  value={ageFilter}
+                  onChange={(e) => setAgeFilter(e.target.value)}
+                  aria-label="Filter by age"
+                >
+                  <option value="">Any age</option>
+                  <option value="lt3">Under 3 days</option>
+                  <option value="gt5">Over 5 days</option>
+                  <option value="gt15">Over 15 days</option>
+                  <option value="gt30">Over 30 days</option>
+                </select>
+
+                <select
+                  className="filter-select"
+                  value={launchFilter}
+                  onChange={(e) => setLaunchFilter(e.target.value)}
+                  aria-label="Filter by launch phase"
+                >
+                  <option value="">Pre and post-launch</option>
+                  <option value="pre">Pre-launch only</option>
+                  <option value="post">Post-launch only</option>
+                </select>
+
+                {filtersOn > 0 && (
+                  <button className="chip" onClick={clearFilters}>
+                    Clear {filtersOn} filter{filtersOn === 1 ? "" : "s"}
+                  </button>
+                )}
+
+                <span className="count-note">
+                  {visible.length} of {tickets?.length ?? 0} tickets
+                </span>
+
+                <button
+                  className="chip"
+                  onClick={() => downloadCsv(
+                    visible,
+                    `cui-queue-${new Date().toISOString().slice(0, 10)}.csv`,
+                  )}
+                  disabled={!visible.length}
+                  title="Exports exactly what these filters are showing"
+                >
+                  <Download size={13} strokeWidth={2} /> CSV
+                </button>
+
+                {canEdit && (
+                  <button
+                    className="chip"
+                    onClick={refreshNow}
+                    disabled={refreshing != null}
+                    title="Pull from Zendesk now instead of waiting for the next run"
+                  >
+                    <RefreshCw
+                      size={13}
+                      className={refreshing ? "spinning" : undefined}
+                      strokeWidth={2}
+                    />
+                    {refreshing === "pulling" ? "Pulling from Zendesk…"
+                      : refreshing === "reading" ? "Reading new replies…"
+                      : "Refresh"}
+                  </button>
+                )}
+              </div>
             </div>
           )}
 

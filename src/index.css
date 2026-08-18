@@ -235,7 +235,8 @@ a { color: var(--k-green-700); }
   gap: 10px;
   padding: 24px 0 8px;
   position: sticky;
-  top: 96px;
+  /* Set from the toolbar's measured height; the fallback covers the first paint. */
+  top: var(--queue-sticky-top, 144px);
   background: var(--k-bg);
   z-index: 10;
 }
@@ -1004,3 +1005,47 @@ a { color: var(--k-green-700); }
 /* .plain-row .id outranks .ticket-id, so the linked number needs its own hover here. */
 .plain-row a.id { text-decoration: none; }
 .plain-row a.id:hover { color: var(--k-hellbender); text-decoration: underline; }
+
+/* Two rows: what you toggle constantly on top, what you narrow by underneath. */
+.toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.toolbar-row.secondary { padding-top: 2px; border-top: 1px solid var(--k-border); }
+
+.filter-select {
+  padding: 4px 8px;
+  border: 1px solid var(--k-border);
+  border-radius: 6px;
+  background: var(--k-surface);
+  color: var(--k-text-muted);
+  font: inherit;
+  font-size: 12.5px;
+  max-width: 190px;
+}
+.filter-select:focus { outline: 2px solid var(--k-green-300); outline-offset: -1px; }
+/* A dropdown that is doing something should not look like one that is not. */
+.filter-select:not([value=""]) { color: var(--k-text); }
+
+.tag.knowledge.some { background: #e4e9f2; color: #3c4a63; }
+.tag.knowledge.high { background: #d9e0ee; color: #2c3852; font-weight: 650; }
+
+/* The note is the whole point of the field: what you would have to know. */
+.knowledge-note {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--k-text-muted);
+  max-width: 78ch;
+}
+.knowledge-note span {
+  font-weight: 650;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: #3c4a63;
+  margin-right: 5px;
+}

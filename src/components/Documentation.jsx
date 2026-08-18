@@ -62,9 +62,9 @@ const TOPICS = [
         </p>
         <p>
           This is the one part of the ordering that surprises people: a ticket can be
-          overdue and still appear last. Filter by <strong>Waiting on them</strong> to see
-          those, or by <strong>Overdue + Waiting on us</strong> for the list you can
-          actually act on today.
+          overdue and still appear last. Filter by <strong>Waiting on us</strong> for the
+          list you can actually act on today, or by <strong>Waiting on them</strong> to
+          see what is parked.
         </p>
 
         <h4>Three commitments, one clock</h4>
@@ -110,13 +110,37 @@ const TOPICS = [
           ticket with no promises attached looked exactly like a broken promise.
         </p>
 
-        <h4>Two ways to cut the list</h4>
+        <h4>Three ways to cut the list</h4>
         <p>
           <strong>By priority</strong> is the ranking above and answers "what next".
-          <strong>By assignee</strong> groups the same filtered tickets by who owns them,
-          your own name first, then the heaviest queues, unassigned last. The ranked view
+          <strong> By assignee</strong> groups the same filtered tickets by who owns them,
+          your own name first, then the heaviest queues, unassigned last: the ranked view
           cannot answer "who is carrying what", because one person's work is scattered
-          across every tier.
+          across every tier. <strong>By due date</strong> is the calendar view, one flat
+          list soonest first, for "what is landing this week".
+        </p>
+
+        <h4>The filters, and what is deliberately missing</h4>
+        <p>
+          The chips are the ones worth toggling constantly; the dropdowns underneath
+          narrow by assignee, requester, institutional knowledge, complexity, effort, age
+          and launch phase. Everything survives a reload except the search box.
+        </p>
+        <p>
+          There is no <strong>Overdue</strong> chip: overdue is a tier, so it is already a
+          heading you can scroll to. There is no <strong>Assigned to me</strong> chip
+          either, because the assignee dropdown does that and more. A filter that
+          duplicates something already on screen costs attention and buys nothing.
+        </p>
+        <p>
+          <strong>No ETA</strong> is the one worth checking daily. The autoresponder
+          promises every requester an ETA, so a ticket sitting there without one is a
+          promise already broken, and it is invisible to the ranking because there is no
+          date to miss.
+        </p>
+        <p>
+          <strong>CSV</strong> exports exactly what the filters are showing, not the whole
+          table. What you exported is what you were looking at.
         </p>
 
         <h4>What the ordering deliberately ignores</h4>
@@ -260,6 +284,55 @@ const TOPICS = [
         <p>
           The model is instructed never to infer a date, a commitment or a severity that
           nobody wrote down. If it is not in the thread, the field stays empty.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: "knowledge",
+    title: "Institutional knowledge",
+    body: (
+      <>
+        <p>
+          Every ticket carries a judgement about how much CUI-specific or CMS-specific
+          knowledge it needs <em>beyond what the ticket itself says</em>. It answers a
+          different question from complexity: not "how hard is this" but{" "}
+          <strong>"can I hand it to someone new?"</strong>
+        </p>
+        <table className="doc-table">
+          <thead><tr><th>Level</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>None</td>
+              <td>The ticket says exactly what to change and where. Anyone who can operate the CMS can finish it from the ticket alone.</td>
+            </tr>
+            <tr>
+              <td>Some</td>
+              <td>The ticket says what it wants, but doing it right needs decisions it does not spell out. Publishing an article or event is the common case: which categories it takes, where it surfaces, which template applies.</td>
+            </tr>
+            <tr>
+              <td>Deep</td>
+              <td>It cannot be finished from its own text. Someone has to know where the authoritative information lives, who owns it, or what the university's convention is. This also covers a requester who was vague, where working out what they meant means already knowing the site.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          The row also shows <strong>what</strong> you would need to know, in one line,
+          without opening the ticket. That line is the useful part: "which category the
+          article takes and where it surfaces" tells you who can pick it up, where a
+          difficulty score does not.
+        </p>
+        <h4>It is not the same as easy</h4>
+        <p>
+          The two come apart constantly. "Please remove the hyperlinks below" is an easy,
+          fast edit and needs <strong>deep</strong> knowledge, because the requester never
+          said which page. A long article import can be routine once you know the category
+          conventions. Filter on knowledge, not on complexity, when you are deciding what
+          to delegate.
+        </p>
+        <p>
+          Only <strong>Some</strong> and <strong>Deep</strong> get a chip. Marking the
+          straightforward ones too would put a badge on every row and say nothing.
         </p>
       </>
     ),

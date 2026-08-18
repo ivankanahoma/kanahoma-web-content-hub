@@ -56,6 +56,19 @@ const ANALYSIS_TOOL = {
           "Judge tone only, not the subject matter.",
       },
       tone_urgency_reason: { type: "string" },
+      institutional_knowledge: {
+        type: "string",
+        enum: ["none", "some", "high"],
+        description:
+          "How much CUI-specific or CMS-specific knowledge someone needs BEYOND what " +
+          "this ticket says, in order to do the work correctly.",
+      },
+      institutional_knowledge_note: {
+        type: "string",
+        description:
+          "One short line naming WHAT they would have to know. Omit when the level is " +
+          "none.",
+      },
       requester_deadline: {
         type: "string",
         description:
@@ -99,7 +112,8 @@ const ANALYSIS_TOOL = {
     // unions, which keeps the schema inside the subset the tools API handles reliably.
     required: [
       "summary", "critical_impact", "complexity", "effort", "complexity_reason",
-      "tone_urgency", "tone_urgency_reason", "requester_deadline_fuzzy",
+      "tone_urgency", "tone_urgency_reason", "institutional_knowledge",
+      "requester_deadline_fuzzy",
       "promised_eta_fuzzy",
     ],
   },
@@ -140,6 +154,27 @@ and possibly fast. Judge the two axes independently.
 TONE URGENCY reads how the requester sounds, and nothing else. A calmly worded report of
 a broken application form is tone 0 and critical impact true. Shouting about a typo is
 tone 3 and critical impact false.
+
+INSTITUTIONAL KNOWLEDGE answers a different question from complexity: can this be handed
+to somebody new? Someone who does not know CUI, or does not know the CMS well. Judge what
+they would need to know that the ticket itself does not tell them.
+
+  - none: the ticket says exactly what to change and where. Anyone who can operate the
+    CMS can finish it from the ticket alone. Delete a sentence, fix a typo, swap a date
+    the requester supplied, update a phone number they gave you.
+  - some: the ticket says what it wants, but doing it correctly needs decisions it does
+    not spell out. Publishing a new article or event is the common case: which categories
+    it takes, where it surfaces on the site, which template applies, how the block is
+    built.
+  - high: the ticket cannot be finished from its own text. Someone has to know where the
+    authoritative information lives, who owns it, or what the university's convention is.
+    This also covers a requester who is vague about what they want changed, where working
+    it out means already knowing the site or the institution.
+
+INSTITUTIONAL KNOWLEDGE NOTE names what the person would have to know, in one short line.
+Not a restatement of the task. Good: "Which category the article takes and where it
+surfaces." "Where the authoritative program dates live." "Requester did not say which
+page; needs knowing the site structure." Omit it entirely when the level is none.
 
 OUR LAST MESSAGE. Classify only the most recent public message from OUR TEAM. This
 decides what happens when a ticket goes quiet, so the distinction that matters most is
@@ -206,6 +241,7 @@ function renderThread(
 // back missing. These are the ones the queue cannot rank without.
 const MUST_HAVE = [
   "summary", "critical_impact", "complexity", "effort", "tone_urgency",
+  "institutional_knowledge",
 ];
 
 function missingFields(input: Record<string, unknown>) {
@@ -358,6 +394,8 @@ Deno.serve(async (req) => {
         complexity_reason: a.complexity_reason,
         tone_urgency: a.tone_urgency,
         tone_urgency_reason: a.tone_urgency_reason,
+        institutional_knowledge: a.institutional_knowledge ?? null,
+        institutional_knowledge_note: a.institutional_knowledge_note ?? null,
         last_agent_message_kind: a.last_agent_message_kind ?? null,
         requester_deadline: a.requester_deadline ?? null,
         requester_deadline_fuzzy: a.requester_deadline_fuzzy ?? false,
