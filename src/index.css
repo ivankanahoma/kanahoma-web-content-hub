@@ -1027,8 +1027,15 @@ a { color: var(--k-green-700); }
   max-width: 190px;
 }
 .filter-select:focus { outline: 2px solid var(--k-green-300); outline-offset: -1px; }
-/* A dropdown that is doing something should not look like one that is not. */
-.filter-select:not([value=""]) { color: var(--k-text); }
+/* A dropdown that is doing something should not look like one that is not. A <select>
+   carries no `value` attribute in the DOM, so this cannot be done in CSS alone: the
+   class comes from the state that actually knows. */
+.filter-select.is-set {
+  border-color: var(--k-green-700);
+  background: var(--k-green-100);
+  color: var(--k-green-700);
+  font-weight: 600;
+}
 
 .tag.knowledge.some { background: #e4e9f2; color: #3c4a63; }
 .tag.knowledge.high { background: #d9e0ee; color: #2c3852; font-weight: 650; }

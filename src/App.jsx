@@ -510,7 +510,7 @@ export default function App() {
 
               <div className="toolbar-row secondary">
                 <select
-                  className="filter-select"
+                  className={`filter-select ${assigneeFilter ? "is-set" : ""}`}
                   value={assigneeFilter}
                   onChange={(e) => setAssigneeFilter(e.target.value)}
                   aria-label="Filter by assignee"
@@ -525,7 +525,7 @@ export default function App() {
                 </select>
 
                 <select
-                  className="filter-select"
+                  className={`filter-select ${requesterFilter ? "is-set" : ""}`}
                   value={requesterFilter}
                   onChange={(e) => setRequesterFilter(e.target.value)}
                   aria-label="Filter by requester"
@@ -537,7 +537,7 @@ export default function App() {
                 </select>
 
                 <select
-                  className="filter-select"
+                  className={`filter-select ${knowledgeFilter ? "is-set" : ""}`}
                   value={knowledgeFilter}
                   onChange={(e) => setKnowledgeFilter(e.target.value)}
                   aria-label="Filter by institutional knowledge"
@@ -550,7 +550,7 @@ export default function App() {
                 </select>
 
                 <select
-                  className="filter-select"
+                  className={`filter-select ${complexityFilter ? "is-set" : ""}`}
                   value={complexityFilter}
                   onChange={(e) => setComplexityFilter(e.target.value)}
                   aria-label="Filter by complexity"
@@ -562,7 +562,7 @@ export default function App() {
                 </select>
 
                 <select
-                  className="filter-select"
+                  className={`filter-select ${effortFilter ? "is-set" : ""}`}
                   value={effortFilter}
                   onChange={(e) => setEffortFilter(e.target.value)}
                   aria-label="Filter by effort"
@@ -573,7 +573,7 @@ export default function App() {
                 </select>
 
                 <select
-                  className="filter-select"
+                  className={`filter-select ${ageFilter ? "is-set" : ""}`}
                   value={ageFilter}
                   onChange={(e) => setAgeFilter(e.target.value)}
                   aria-label="Filter by age"
@@ -586,7 +586,7 @@ export default function App() {
                 </select>
 
                 <select
-                  className="filter-select"
+                  className={`filter-select ${launchFilter ? "is-set" : ""}`}
                   value={launchFilter}
                   onChange={(e) => setLaunchFilter(e.target.value)}
                   aria-label="Filter by launch phase"

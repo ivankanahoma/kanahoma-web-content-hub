@@ -215,8 +215,10 @@ export default function TicketRow({
               </span>
             )}
 
-            {/* The requester's name only earns a chip when it changes what you do. */}
-            {ticket.is_vip && <Pill icon={User}>{ticket.requester_name || "unknown"}</Pill>}
+            {/* Who asked, on every row. Hiding it for everyone but VIPs left five rows
+                in six with no idea who was waiting. The VIP tag above already marks the
+                ones that jump the queue, so the name does not have to. */}
+            <Pill icon={User}>{ticket.requester_name || "unknown"}</Pill>
 
             {/* Ownership sits in the row rather than behind an expand, because an
                 unowned ticket is a thing to fix while scanning, not while reading. */}
