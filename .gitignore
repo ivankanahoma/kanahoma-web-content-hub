@@ -6,3 +6,6 @@ dist/
 
 # Raw API dumps used to design the schema. Real client data — never committed.
 data/
+
+# Supabase CLI scratch
+supabase/.temp/
