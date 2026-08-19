@@ -19,7 +19,7 @@ import {
   dueParts,
   zendeskUrl,
 } from "../lib/queue";
-import { formatDate, formatDue, pluralDays } from "../lib/format";
+import { formatDate, formatDue, formatRelative, pluralDays } from "../lib/format";
 
 function Pill({ icon: Icon, children, tone = "" }) {
   return (
@@ -46,6 +46,7 @@ export default function TicketRow({
   const [copied, setCopied] = useState(false);
   const [problem, setProblem] = useState(null);
   const [assignBusy, setAssignBusy] = useState(false);
+  const [lastMessage, setLastMessage] = useState(undefined); // undefined = not loaded
   const [picking, setPicking] = useState(false);
 
   // Only fetch a stored draft once the row is actually opened.
@@ -55,6 +56,39 @@ export default function TicketRow({
     supabase
       .from("ticket_drafts").select("*").eq("ticket_id", ticket.id).maybeSingle()
       .then(({ data }) => { if (!cancelled) setDraft(data ?? null); });
+    return () => { cancelled = true; };
+  }, [expanded, ticket.id]);
+
+  /**
+   * The most recent message on the thread, whoever wrote it and whether or not it was
+   * public. The original request is deliberately not it: in Zendesk the first comment is
+   * the ticket description, which the summary above already covers, so a ticket nobody
+   * has answered shows nothing here rather than repeating itself.
+   *
+   * The autoresponder and merge notices are excluded too. They are not messages.
+   */
+  useEffect(() => {
+    if (!expanded) return;
+    let cancelled = false;
+
+    (async () => {
+      const rows = supabase
+        .from("ticket_comments")
+        .select("id, author_side, author_name, is_public, body, created_at")
+        .eq("ticket_id", ticket.id)
+        .neq("author_side", "system");
+
+      const [first, last] = await Promise.all([
+        rows.order("created_at", { ascending: true }).limit(1),
+        rows.order("created_at", { ascending: false }).limit(1),
+      ]);
+      if (cancelled) return;
+
+      const newest = last.data?.[0] ?? null;
+      const oldest = first.data?.[0] ?? null;
+      setLastMessage(newest && newest.id !== oldest?.id ? newest : null);
+    })();
+
     return () => { cancelled = true; };
   }, [expanded, ticket.id]);
 
@@ -401,6 +435,22 @@ export default function TicketRow({
                 </button>
               </div>
             </div>
+          )}
+
+          {lastMessage && (
+            <section className={`last-message ${lastMessage.is_public ? "public" : "internal"}`}>
+              <header>
+                <span className="who">
+                  {lastMessage.author_name ??
+                    (lastMessage.author_side === "us" ? "Web Team" : "Requester")}
+                </span>
+                <span className={`tag ${lastMessage.is_public ? "quiet" : "note"}`}>
+                  {lastMessage.is_public ? "Public comment" : "Internal note"}
+                </span>
+                <span className="muted">{formatRelative(lastMessage.created_at)}</span>
+              </header>
+              <p>{lastMessage.body}</p>
+            </section>
           )}
 
           {problem && <p className="inline-error">{problem}</p>}

@@ -484,6 +484,21 @@ const TOPICS = [
           public reply is emailed and cannot be unsent, it asks once before sending. An
           internal note never does.
         </p>
+        <h4>The last message</h4>
+        <p>
+          Opening a ticket shows the most recent message on the thread, whoever wrote it
+          and whether or not it was public, right above the box you reply in. The badge
+          says which it was, and an internal note carries the same cream as the composer,
+          so "who can see this" reads the same whether you are reading or writing.
+        </p>
+        <p>
+          The original request is deliberately not shown. In Zendesk the first comment
+          <em>is</em> the ticket description, which the summary at the top already covers,
+          so a ticket nobody has answered yet shows nothing here rather than repeating
+          itself. The autoresponder and Zendesk's merge notices are excluded too: they are
+          not messages.
+        </p>
+
         <h4>Mentioning someone</h4>
         <p>
           Type <strong>@</strong> in an internal note and pick a name. The person is added
