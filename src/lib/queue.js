@@ -130,6 +130,93 @@ export function sortQueue(rows) {
   });
 }
 
+/**
+ * The queue, cut into the groups it renders as.
+ *
+ * Pins come out first and on their own, above every tier, in every view. A pin is "I am
+ * working on this now", which outranks anything the ranking has an opinion about, and a
+ * pinned ticket you had to hunt for inside a tier would not be worth pinning.
+ */
+export function groupQueue(rows, { view = "priority", myAgentId = null } = {}) {
+  const sorted = sortQueue(rows);
+  const pinned = sorted.filter((t) => t.pinned);
+  const rest = sorted.filter((t) => !t.pinned);
+
+  const head = pinned.length
+    ? [{
+      key: "pinned",
+      label: "Pinned",
+      hint: "Only you see these",
+      tone: "pinned",
+      rows: pinned,
+    }]
+    : [];
+
+  if (view === "due") {
+    const dated = rest.filter((t) => t.hours_to_due != null)
+      .sort((a, b) => a.hours_to_due - b.hours_to_due);
+    const undated = rest.filter((t) => t.hours_to_due == null)
+      .sort((a, b) => (b.age_days ?? 0) - (a.age_days ?? 0));
+    return [
+      ...head,
+      ...(dated.length
+        ? [{ key: "dated", label: "Has a date", hint: "Soonest first", tone: "normal",
+             rows: dated }]
+        : []),
+      ...(undated.length
+        ? [{ key: "undated", label: "No date attached", hint: "Longest waiting first",
+             tone: "muted", rows: undated }]
+        : []),
+    ];
+  }
+
+  if (view === "assignee") {
+    const byAgent = new Map();
+    for (const t of rest) {
+      const key = t.assignee_name ?? "Unassigned";
+      if (!byAgent.has(key)) byAgent.set(key, []);
+      byAgent.get(key).push(t);
+    }
+    const mine = myAgentId == null
+      ? null
+      : rest.find((t) => String(t.assignee_id) === String(myAgentId))?.assignee_name;
+
+    // Your own name first, then the heaviest queues, then whatever nobody owns.
+    const groups = [...byAgent.entries()].sort(([a, ra], [b, rb]) => {
+      if (a === mine) return -1;
+      if (b === mine) return 1;
+      if (a === "Unassigned") return 1;
+      if (b === "Unassigned") return -1;
+      return rb.length - ra.length;
+    });
+
+    return [...head, ...groups.map(([name, group]) => ({
+      key: name,
+      label: name,
+      tone: name === "Unassigned" ? "muted" : "normal",
+      hint: name === "Unassigned"
+        ? "Nobody owns these yet"
+        : "In queue order, highest priority first",
+      rows: group,
+    }))];
+  }
+
+  const byTier = new Map();
+  for (const t of rest) {
+    if (!byTier.has(t.tier)) byTier.set(t.tier, []);
+    byTier.get(t.tier).push(t);
+  }
+  return [...head, ...[...byTier.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([tier, group]) => ({
+      key: `tier-${tier}`,
+      label: TIERS[tier]?.label ?? `Tier ${tier}`,
+      hint: TIERS[tier]?.hint,
+      tone: TIERS[tier]?.tone ?? "normal",
+      rows: group,
+    }))];
+}
+
 export function zendeskUrl(subdomain, id) {
   return `https://${subdomain}.zendesk.com/agent/tickets/${id}`;
 }

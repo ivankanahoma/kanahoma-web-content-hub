@@ -7,7 +7,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { sortQueue } from "../src/lib/queue.js";
+import { groupQueue, sortQueue } from "../src/lib/queue.js";
 
 /** Only the fields the sort reads. */
 const ticket = (id, over = {}) => ({
@@ -102,4 +102,69 @@ test("sorting does not mutate the array it was given", () => {
   const before = rows.map((t) => t.id);
   sortQueue(rows);
   assert.deepEqual(rows.map((t) => t.id), before);
+});
+
+// --- grouping ---------------------------------------------------------------
+
+
+const grouped = (rows, opts) => groupQueue(rows, opts).map((g) => [g.key, g.rows.length]);
+
+test("pins get their own group above every tier", () => {
+  assert.deepEqual(
+    grouped([
+      ticket("critical", { tier: 0 }),
+      ticket("pinned-and-quiet", { tier: 6, base_tier: 6, pinned: true }),
+      ticket("prelaunch", { tier: 8, base_tier: 6 }),
+    ]),
+    [["pinned", 1], ["tier-0", 1], ["tier-8", 1]],
+  );
+});
+
+test("a pinned ticket is not also listed under its tier", () => {
+  const groups = groupQueue([ticket("a", { tier: 0, pinned: true })]);
+  assert.equal(groups.length, 1);
+  assert.equal(groups[0].key, "pinned");
+});
+
+test("the pinned group says it is private", () => {
+  const [group] = groupQueue([ticket("a", { pinned: true })]);
+  assert.equal(group.label, "Pinned");
+  assert.match(group.hint, /only you/i);
+});
+
+test("no pins means no pinned group", () => {
+  assert.deepEqual(grouped([ticket("a", { tier: 2 })]), [["tier-2", 1]]);
+});
+
+test("pins lead the assignee and due views too", () => {
+  const rows = [
+    ticket("mine", { tier: 6, assignee_id: 7, assignee_name: "Ada" }),
+    ticket("pin", { tier: 6, assignee_id: 7, assignee_name: "Ada", pinned: true }),
+  ];
+  assert.deepEqual(grouped(rows, { view: "assignee" }), [["pinned", 1], ["Ada", 1]]);
+  assert.deepEqual(grouped(rows, { view: "due" }), [["pinned", 1], ["undated", 1]]);
+});
+
+test("the due view splits on whether there is a date at all", () => {
+  assert.deepEqual(
+    grouped([
+      ticket("soon", { hours_to_due: 4 }),
+      ticket("later", { hours_to_due: 200 }),
+      ticket("never", { hours_to_due: null }),
+    ], { view: "due" }),
+    [["dated", 2], ["undated", 1]],
+  );
+});
+
+test("the assignee view puts your own name first, unassigned last", () => {
+  const rows = [
+    ticket("u1", { assignee_id: null, assignee_name: null }),
+    ticket("a1", { assignee_id: 1, assignee_name: "Busy" }),
+    ticket("a2", { assignee_id: 1, assignee_name: "Busy" }),
+    ticket("me", { assignee_id: 9, assignee_name: "Me" }),
+  ];
+  assert.deepEqual(
+    grouped(rows, { view: "assignee", myAgentId: 9 }),
+    [["Me", 1], ["Busy", 2], ["Unassigned", 1]],
+  );
 });

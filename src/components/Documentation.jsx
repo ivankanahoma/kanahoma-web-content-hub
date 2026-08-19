@@ -83,6 +83,20 @@ const TOPICS = [
           the most overdue sits at the top.
         </p>
 
+        <h4>Pinning</h4>
+        <p>
+          The pin on a row puts a ticket in a <strong>Pinned</strong> group above
+          everything else, in every view. It is a note to yourself about what you are
+          working on right now, so it outranks anything the ranking has an opinion about,
+          including a pre-launch ticket that really does need doing today.
+        </p>
+        <p>
+          <strong>Pins are private.</strong> Yours are yours: nobody else's queue moves
+          when you pin something, and nobody can see what you have pinned. That is
+          enforced in the database rather than in the interface, so it holds however the
+          data is reached.
+        </p>
+
         <h4>A VIP leads its tier</h4>
         <p>
           Inside whatever tier it lands in, a flagged requester's ticket sorts first. In

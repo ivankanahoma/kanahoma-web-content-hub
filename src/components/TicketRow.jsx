@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import {
   Copy,
   ExternalLink,
+  Pin,
+  PinOff,
   Sparkles,
   User,
   UserCheck,
@@ -34,6 +36,7 @@ function Pill({ icon: Icon, children, tone = "" }) {
 
 export default function TicketRow({
   ticket, subdomain, canEdit, onChanged, expanded, onToggle, agents = [],
+  onTogglePin,
 }) {
   const { commitment, sla } = dueParts(ticket);
   const due = commitment ? formatDue(commitment.hours) : null;
@@ -293,6 +296,20 @@ export default function TicketRow({
             </p>
           )}
         </div>
+
+        {onTogglePin && (
+          <button
+            className={`pin-toggle ${ticket.pinned ? "on" : ""}`}
+            onClick={(e) => { e.stopPropagation(); onTogglePin(ticket); }}
+            aria-pressed={!!ticket.pinned}
+            title={ticket.pinned
+              ? "Unpin. Pins are yours alone."
+              : "Pin to the top of your queue. Nobody else sees it."}
+          >
+            {ticket.pinned ? <Pin size={15} strokeWidth={2} />
+                           : <PinOff size={15} strokeWidth={1.75} />}
+          </button>
+        )}
 
         {/* A date somebody named out loud outranks a clock the hub computed, so a
             commitment takes the strong block and the reply SLA drops to a footnote

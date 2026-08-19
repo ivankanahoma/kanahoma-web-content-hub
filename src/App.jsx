@@ -3,7 +3,7 @@ import { Download, RefreshCw } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import { invokeFunction } from "./lib/invoke";
 import { downloadCsv } from "./lib/csv";
-import { TIERS, sortQueue } from "./lib/queue";
+import { groupQueue, sortQueue } from "./lib/queue";
 import { SECTION_BY_ID, homeSectionFor, sectionsFor } from "./lib/sections";
 import Login from "./components/Login";
 import Clocks from "./components/Clocks";
@@ -276,6 +276,26 @@ export default function App() {
 
   const isWaitingOnThem = (t) => t.waiting_on === "requester";
 
+  /**
+   * A pin is a private note to yourself about what you are working on. RLS keeps the row
+   * to your account, so nobody else's queue moves.
+   */
+  const togglePin = useCallback(async (ticket) => {
+    const { error } = ticket.pinned
+      ? await supabase.from("ticket_pins").delete()
+          .eq("ticket_id", ticket.id).eq("user_id", session.user.id)
+      : await supabase.from("ticket_pins")
+          .insert({ ticket_id: ticket.id, user_id: session.user.id });
+
+    if (error) setError(error.message);
+    else {
+      // Move the row now; the reload behind it confirms what the database agreed to.
+      setTickets((rows) => rows.map((t) =>
+        t.id === ticket.id ? { ...t, pinned: !ticket.pinned } : t));
+      await reloadQueue();
+    }
+  }, [session, reloadQueue]);
+
   const visible = useMemo(() => {
     if (!tickets) return [];
     const term = search.trim().toLowerCase();
@@ -319,52 +339,10 @@ export default function App() {
       assigneeFilter, requesterFilter, complexityFilter, effortFilter, knowledgeFilter,
       ageFilter, launchFilter]);
 
-  /**
-   * Two ways to cut the same list. By priority answers "what next"; by assignee answers
-   * "who is carrying what", which the ranked view cannot show because one person's work
-   * is scattered across every tier.
-   */
-  const grouped = useMemo(() => {
-    // One flat list, soonest commitment first. Deliberately ignores the tiers: it is the
-    // calendar view, for "what is landing this week" rather than "what next".
-    if (view === "due") {
-      const withDate = visible.filter((t) => t.hours_to_due != null)
-        .sort((a, b) => a.hours_to_due - b.hours_to_due);
-      const without = visible.filter((t) => t.hours_to_due == null)
-        .sort((a, b) => (b.age_days ?? 0) - (a.age_days ?? 0));
-      return [
-        ...(withDate.length ? [["Has a date", withDate]] : []),
-        ...(without.length ? [["No date attached", without]] : []),
-      ];
-    }
-    if (view === "assignee") {
-      const byAgent = new Map();
-      for (const t of visible) {
-        const key = t.assignee_name ?? "Unassigned";
-        if (!byAgent.has(key)) byAgent.set(key, []);
-        byAgent.get(key).push(t);
-      }
-      const mine = myAgentId == null
-        ? null
-        : visible.find((t) => String(t.assignee_id) === String(myAgentId))?.assignee_name;
-
-      // Your own name first, then the heaviest queues, then whatever nobody owns.
-      return [...byAgent.entries()].sort(([a, ra], [b, rb]) => {
-        if (a === mine) return -1;
-        if (b === mine) return 1;
-        if (a === "Unassigned") return 1;
-        if (b === "Unassigned") return -1;
-        return rb.length - ra.length;
-      });
-    }
-
-    const byTier = new Map();
-    for (const t of visible) {
-      if (!byTier.has(t.tier)) byTier.set(t.tier, []);
-      byTier.get(t.tier).push(t);
-    }
-    return [...byTier.entries()].sort((a, b) => a[0] - b[0]);
-  }, [visible, view, myAgentId]);
+  const grouped = useMemo(
+    () => groupQueue(visible, { view, myAgentId }),
+    [visible, view, myAgentId],
+  );
 
   /** Requesters who actually have something open, so the filter is never a dead list. */
   const requestersInQueue = useMemo(() => {
@@ -670,22 +648,14 @@ export default function App() {
                 {tickets?.length > 0 && visible.length === 0 && (
                   <div className="state">Nothing matches those filters.</div>
                 )}
-                {grouped.map(([key, rows]) => {
-                  const meta = view === "assignee"
-                    ? {
-                      label: key,
-                      tone: key === "Unassigned" ? "muted" : "normal",
-                      hint: key === "Unassigned"
-                        ? "Nobody owns these yet"
-                        : "In queue order, highest priority first",
-                    }
-                    : TIERS[key] ?? { label: `Tier ${key}`, tone: "normal" };
+                {grouped.map((group) => {
+                  const rows = group.rows;
                   return (
-                    <section key={key}>
-                      <div className={`tier-heading ${meta.tone}`}>
-                        <h2>{meta.label}</h2>
+                    <section key={group.key}>
+                      <div className={`tier-heading ${group.tone}`}>
+                        <h2>{group.label}</h2>
                         <span className="n">{rows.length}</span>
-                        <span className="hint">{meta.hint}</span>
+                        <span className="hint">{group.hint}</span>
                       </div>
                       <div className="ticket-list">
                         {rows.map((t) => (
@@ -696,6 +666,7 @@ export default function App() {
                             canEdit={canEdit}
                             agents={agents}
                             onChanged={reloadQueue}
+                            onTogglePin={togglePin}
                             expanded={expandedId === t.id}
                             onToggle={() =>
                               setExpandedId(expandedId === t.id ? null : t.id)}

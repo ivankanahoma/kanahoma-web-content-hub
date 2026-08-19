@@ -123,6 +123,17 @@ first tie-break. Without it the pre-launch bucket — around 60% of the open que
 be an undifferentiated pile with its breached tickets scattered through it. A pre-launch
 ticket that really does need doing now gets pinned; pinned beats tier.
 
+**Pins are per user and private.** `ticket_pins` is keyed on `(user_id, ticket_id)` with
+one RLS policy covering read and write, so a pin never moves anybody else's queue.
+`ticket_queue.pinned` is an `exists` against it on `auth.uid()`, which only works because
+every view is `security_invoker`: the queue has to be read as the person asking.
+`ticket_overrides.pinned` predates this, was global, never had a control, and no longer
+feeds the queue.
+
+`src/lib/queue.js -> groupQueue` turns the sorted queue into the groups it renders as,
+pins first in every view. It is a plain function so the bucketing is testable, which the
+inline version in `App.jsx` was not.
+
 ### Stalled tickets
 
 Silence alone never means "close". Once the requester has been quiet for three business
