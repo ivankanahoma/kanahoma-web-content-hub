@@ -31,18 +31,29 @@ Anthropic ─► enrich-tickets┘         ▲
   **Refresh** button runs the same two in the same order on demand, which is why both
   now answer the CORS preflight too.
 - **The SPA only reads.** Its writes are limited to hub-side judgements: VIP flags,
-  manual ETAs, keyword rules, schedules. The one exception is `assign-ticket`, which
-  PUTs an assignee to Zendesk.
+  manual ETAs, keyword rules, schedules. The exceptions are `assign-ticket` and
+  `add-internal-note`, the only two things that reach Zendesk.
 
 ### Writing back to Zendesk
 
-`assign-ticket` is the only function that changes anything in Zendesk. Edge Functions run
+`assign-ticket` and `add-internal-note` are the only functions that change anything in
+Zendesk. Edge Functions run
 as the service role and **bypass RLS entirely**, so a write endpoint cannot lean on it:
 every signed-in account, viewer and content editor included, reaches the same URL with a
 valid JWT. `_shared/auth.ts -> requireRole` verifies the caller's token with `getUser`
 (never by decoding it) and looks their role up with the service key, because a
 `content_editor` cannot read `app_users` at all and that is indistinguishable from having
-no role. The function touches nothing else on the ticket.
+no role. Neither function touches anything else on the ticket.
+
+`add-internal-note` posts **internal notes only**: `public: false` is a constant in the
+function, never a request parameter, so no path through the page can turn a note into a
+reply to the requester. The composer is a `contenteditable`, so its HTML is whatever the
+browser produced on paste; `_shared/note-html.ts` keeps it to a dozen tags and drops any
+href that is not plainly `http(s):` or `mailto:`. It is unit-tested in Node — the file is
+plain enough that `node --test` strips its types — because a sanitiser nobody tests is a
+sanitiser nobody has checked. The posted comment is mirrored into `ticket_comments` with
+its real Zendesk id, so the thread is not missing it until the next sync and the later
+upsert is idempotent.
 
 Assignees come from `zendesk_agents.assignable`, a **hub-side curation of seven people**,
 not from group membership: the Zendesk group carries fifteen, including staff who no

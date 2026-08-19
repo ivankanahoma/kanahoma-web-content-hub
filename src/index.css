@@ -1060,3 +1060,86 @@ a { color: var(--k-green-700); }
 /* The toolbar search gives up its width so the chips stay on one line. It is a filter
    among filters here, not the main event; the other search boxes keep their size. */
 .toolbar-row .search { flex: 0 1 240px; min-width: 150px; max-width: 240px; }
+
+/* Internal note composer.
+   Deliberately the same cream as Zendesk's own internal-note box: the colour is what
+   tells you at a glance that this will not reach the requester, before you read a word. */
+.note-composer {
+  margin-top: 16px;
+  border: 1px solid #e6d9b8;
+  border-radius: 8px;
+  background: #fdf6e7;
+  overflow: hidden;
+  cursor: default;
+}
+.note-composer header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px 0;
+  color: #6f5312;
+}
+.note-composer header strong { font-size: 13px; font-weight: 650; }
+.note-scope {
+  font-size: 11px;
+  color: #927c46;
+  margin-left: auto;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.note-editor {
+  min-height: 76px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--k-text);
+  outline: none;
+  overflow-wrap: anywhere;
+}
+.note-editor:empty::before {
+  content: attr(data-placeholder);
+  color: #a4936b;
+}
+.note-editor:focus-visible { outline: none; }
+.note-editor a { color: var(--k-green-700); }
+
+.note-files { list-style: none; margin: 0; padding: 0 12px 4px; display: grid; gap: 4px; }
+.note-files li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: #6f5312;
+  background: #f7ecd4;
+  border-radius: 5px;
+  padding: 4px 8px;
+}
+.note-files .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.note-files button {
+  border: 0;
+  background: transparent;
+  color: #927c46;
+  display: flex;
+  padding: 2px;
+}
+.note-files button:hover { color: var(--k-overdue); }
+
+.note-composer footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px 9px;
+}
+.note-composer footer .grow { flex: 1; min-width: 0; }
+.note-tool {
+  display: flex;
+  padding: 5px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #927c46;
+}
+.note-tool:hover { background: #f2e4c6; color: #6f5312; }
+.note-send { padding: 5px 12px; font-size: 13px; }
+.note-posted { font-size: 12px; color: var(--k-green-700); font-weight: 600; }

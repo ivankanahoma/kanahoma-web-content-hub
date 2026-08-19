@@ -461,16 +461,31 @@ const TOPICS = [
           copy them into Zendesk yourself.
         </p>
 
-        <h4>The one thing the hub writes back</h4>
+        <h4>The two things the hub writes back</h4>
         <p>
-          Assigning a ticket is the single exception to read-only. Pick someone in the
-          expanded ticket and the change goes to Zendesk immediately, because an assignee
-          that only existed in the hub would disagree with the system of record within
-          minutes.
+          Two things write back. <strong>Assigning a ticket</strong> is the first: pick
+          someone in the expanded ticket and the change goes to Zendesk immediately,
+          because an assignee that only existed in the hub would disagree with the system
+          of record within minutes.
         </p>
         <p>
-          It is deliberately narrow. Only admins and managers can do it, and nothing else
-          on the ticket is touched: no status, no comment, no tags. The permission is
+          The second is the <strong>internal note</strong> composer, which sits open
+          inside an expanded ticket rather than behind a button. It posts only internal
+          notes: <em>public</em> is a constant in the function, not something the page can
+          ask for, so this cannot become a reply to the requester by accident. The cream
+          styling is copied from Zendesk deliberately, so the box is recognisable before
+          the label is read. Links and attachments are supported, up to 5&nbsp;MB a file
+          and 8&nbsp;MB in total.
+        </p>
+        <p>
+          What you type is cleaned before it is sent. The composer is a rich text box, so
+          a paste from Word or a browser can carry markup with it; only the tags a note
+          needs survive, and an address that is not plainly a web or mail link loses its
+          href rather than travelling to Zendesk.
+        </p>
+        <p>
+          Assigning is deliberately narrow. Only admins and managers can do either, and
+          nothing else on the ticket is touched: no status, no public reply, no tags. The permission is
           checked against your own sign-in inside the function, not taken from the page,
           because Edge Functions run with full database access and the interface is not
           what stops anyone.
