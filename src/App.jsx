@@ -738,7 +738,14 @@ export default function App() {
             )}
 
             {section === "leadership" && (
-              <Leadership tickets={tickets} subdomain={subdomain} taggedFor={manager} />
+              <Leadership
+                tickets={tickets}
+                subdomain={subdomain}
+                taggedFor={manager}
+                canEdit={canEdit}
+                agents={agents}
+                onChanged={reloadQueue}
+              />
             )}
 
             {section === "docs" && <Documentation />}

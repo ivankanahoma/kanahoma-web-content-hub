@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { AlertTriangle, CalendarClock, Clock, Inbox, MessageSquareOff } from "lucide-react";
-import { zendeskUrl } from "../lib/queue";
+import { sortQueue, zendeskUrl } from "../lib/queue";
+import TicketRow from "./TicketRow";
 import { pluralDays } from "../lib/format";
 
 /**
@@ -57,7 +58,10 @@ function BarRow({ label, count, total, fill }) {
   );
 }
 
-export default function Leadership({ tickets, subdomain, taggedFor }) {
+export default function Leadership({
+  tickets, subdomain, taggedFor, canEdit, agents, onChanged,
+}) {
+  const [expandedId, setExpandedId] = useState(null);
   /**
    * What has been tagged onto one person. Followers are what Zendesk's own @mentions
    * create, so this is "things somebody wanted you to see", whether the tag came from
@@ -65,9 +69,8 @@ export default function Leadership({ tickets, subdomain, taggedFor }) {
    */
   const tagged = useMemo(() => {
     if (!taggedFor?.agentId) return [];
-    return (tickets ?? [])
-      .filter((t) => (t.follower_ids ?? []).map(String).includes(String(taggedFor.agentId)))
-      .sort((a, b) => a.tier - b.tier || (b.age_days ?? 0) - (a.age_days ?? 0));
+    return sortQueue((tickets ?? []).filter((t) =>
+      (t.follower_ids ?? []).map(String).includes(String(taggedFor.agentId))));
   }, [tickets, taggedFor]);
 
   const m = useMemo(() => {
@@ -151,26 +154,26 @@ export default function Leadership({ tickets, subdomain, taggedFor }) {
           </h3>
           <p className="section-intro">
             Open tickets where {taggedFor.name ?? "you are"} a follower in Zendesk, which
-            is what an @mention adds. Highest priority first.
+            is what an @mention adds. Same rows as the queue, in the same order, so they
+            can be opened, assigned and answered here.
           </p>
           {!tagged.length ? (
             <div className="state">Nothing tagged right now.</div>
           ) : (
-            <div className="plain-list">
+            // The queue's own row, so a ticket opens, assigns and gets answered here
+            // exactly as it does there. One row means one set of behaviour to learn.
+            <div className="ticket-list">
               {tagged.map((t) => (
-                <div className="plain-row" key={t.id}>
-                  <a className="id ticket-id" href={zendeskUrl(subdomain, t.id)}
-                     target="_blank" rel="noreferrer noopener" title="Open in Zendesk">
-                    #{t.id}
-                  </a>
-                  <span className="grow">{t.subject}</span>
-                  {t.critical_impact && <span className="tag critical">Critical</span>}
-                  <span className={`tag ${t.waiting_on === "us" ? "warn" : "quiet"}`}>
-                    {t.waiting_on === "us" ? "Waiting on us" : "Waiting on them"}
-                  </span>
-                  <span className="muted">{t.assignee_name ?? "unassigned"}</span>
-                  <span className="pill">{pluralDays(t.age_days)} old</span>
-                </div>
+                <TicketRow
+                  key={t.id}
+                  ticket={t}
+                  subdomain={subdomain}
+                  canEdit={canEdit}
+                  agents={agents}
+                  onChanged={onChanged}
+                  expanded={expandedId === t.id}
+                  onToggle={() => setExpandedId(expandedId === t.id ? null : t.id)}
+                />
               ))}
             </div>
           )}

@@ -319,7 +319,13 @@ const TOPICS = [
           <strong>Leadership</strong> lists the open tickets the manager is tagged on.
           Tagged means a <strong>follower</strong> in Zendesk, which is what an @mention
           adds, so the list covers tags made from the hub and tags made in Zendesk
-          directly. Highest priority first, with who owns each one.
+          directly.
+        </p>
+        <p>
+          They are the <strong>same rows as the queue</strong>, in the same order, so a
+          ticket opens, gets assigned and gets answered here exactly as it does there.
+          One row means one set of behaviour to learn, and no reason to leave the page
+          you were already on.
         </p>
         <p>
           Followers arrive on the ticket that the sync already fetches, so keeping this
