@@ -1179,3 +1179,37 @@ a { color: var(--k-green-700); }
 }
 .note-composer.is-public .note-tool:hover { background: var(--k-green-100); }
 .note-composer.is-public .note-files li { background: var(--k-bg); color: var(--k-text-muted); }
+
+.mention-picker {
+  list-style: none;
+  margin: 0 12px 6px;
+  padding: 4px;
+  border: 1px solid #e6d9b8;
+  border-radius: 7px;
+  background: var(--k-surface);
+  box-shadow: 0 4px 14px rgba(47, 73, 54, 0.12);
+  max-width: 260px;
+}
+.mention-picker button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+  color: var(--k-text);
+}
+.mention-picker button:hover { background: var(--k-green-100); color: var(--k-green-700); }
+
+.note-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #a4936b;
+  margin-left: 2px;
+}

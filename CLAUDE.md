@@ -45,7 +45,14 @@ valid JWT. `_shared/auth.ts -> requireRole` verifies the caller's token with `ge
 `content_editor` cannot read `app_users` at all and that is indistinguishable from having
 no role. Neither function touches anything else on the ticket.
 
-`add-comment` posts an internal note or a public reply. **`public` must arrive as the
+`add-comment` posts an internal note or a public reply, and turns @mentions into
+**followers**. Zendesk's real @mentions are an agent-interface feature with no documented
+API; a follower is the same outcome by the supported route, and CUI's account has
+`ticket_followers_allowed` and `follower_and_email_cc_collaborations` both on (checked
+against `/api/v2/account/settings.json`, not assumed). The `@Name` is plain text; the
+notification is the follower. Mentions are refused for anyone outside
+`zendesk_agents.assignable`, and are not offered at all on a public reply, so an internal
+handle cannot travel out in a customer email. **`public` must arrive as the
 literal boolean `true`** — a missing field, `"true"`, or any other truthy value posts an
 internal note, so the safe outcome is the one you get by accident. The function was
 renamed from `add-internal-note` when public replies were added: a function still called

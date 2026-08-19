@@ -409,6 +409,7 @@ export default function TicketRow({
             <CommentComposer
               ticketId={ticket.id}
               requesterName={ticket.requester_name}
+              agents={agents}
               onPosted={onChanged}
             />
           )}

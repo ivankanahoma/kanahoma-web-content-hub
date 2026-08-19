@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Link2, Lock, Mail, Paperclip, Send, X } from "lucide-react";
+import { AtSign, Link2, Lock, Mail, Paperclip, Send, X } from "lucide-react";
 import { invokeFunction } from "../lib/invoke";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -28,8 +28,12 @@ const prettySize = (bytes) => bytes < 1024 * 1024
  * reading. A public reply is emailed to the requester and cannot be unsent, so it also
  * asks once before sending; an internal note never does.
  */
-export default function CommentComposer({ ticketId, requesterName, onPosted }) {
+export default function CommentComposer({
+  ticketId, requesterName, agents = [], onPosted,
+}) {
   const [isPublic, setIsPublic] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState(null); // null = picker closed
+  const [mentioned, setMentioned] = useState([]);
   const editorRef = useRef(null);
   const fileRef = useRef(null);
   const [files, setFiles] = useState([]);
@@ -39,6 +43,35 @@ export default function CommentComposer({ ticketId, requesterName, onPosted }) {
   const [empty, setEmpty] = useState(true);
 
   const stop = (e) => e.stopPropagation();
+
+  /** The text between the caret and the "@" that opened the picker, if any. */
+  function readMentionQuery() {
+    const selection = window.getSelection();
+    if (!selection?.focusNode) return null;
+    const upToCaret = String(selection.focusNode.textContent ?? "")
+      .slice(0, selection.focusOffset);
+    const match = /(?:^|\s)@([\w.\-]*)$/.exec(upToCaret);
+    return match ? match[1] : null;
+  }
+
+  const matches = mentionQuery == null ? [] : agents.filter((a) =>
+    a.name.toLowerCase().includes(mentionQuery.toLowerCase())).slice(0, 6);
+
+  /**
+   * Replaces the half-typed "@que" with the full name. Mentions are plain text in the
+   * comment; the notification comes from adding the person as a follower on the way out.
+   */
+  function pickMention(agent) {
+    editorRef.current?.focus();
+    for (let i = 0; i <= (mentionQuery?.length ?? 0); i++) {
+      document.execCommand("delete", false);
+    }
+    document.execCommand("insertText", false, `@${agent.name} `);
+    setMentioned((current) =>
+      current.some((a) => a.id === agent.id) ? current : [...current, agent]);
+    setMentionQuery(null);
+    setEmpty(!editorRef.current?.textContent.trim());
+  }
 
   /** Paste as plain text: whatever came from Word or a browser is not worth carrying. */
   const onPaste = (e) => {
@@ -91,12 +124,21 @@ export default function CommentComposer({ ticketId, requesterName, onPosted }) {
         data: await readAsBase64(f),
       })));
 
+      // Only the ones still written in the note: deleting the text removes the mention,
+      // which is what someone would expect after taking the name back out.
+      const text = editorRef.current?.textContent ?? "";
+      const stillMentioned = isPublic
+        ? []
+        : mentioned.filter((a) => text.includes(`@${a.name}`)).map((a) => a.id);
+
       await invokeFunction("add-comment", {
         ticket_id: ticketId, html, attachments, public: isPublic,
+        mentions: stillMentioned,
       });
 
       if (editorRef.current) editorRef.current.innerHTML = "";
       setFiles([]);
+      setMentioned([]);
       setEmpty(true);
       setPosted(true);
       setTimeout(() => setPosted(false), 2600);
@@ -125,7 +167,7 @@ export default function CommentComposer({ ticketId, requesterName, onPosted }) {
             type="button"
             className="chip"
             aria-pressed={isPublic}
-            onClick={() => setIsPublic(true)}
+            onClick={() => { setIsPublic(true); setMentionQuery(null); }}
           >
             <Mail size={12} strokeWidth={2} /> Public reply
           </button>
@@ -147,9 +189,28 @@ export default function CommentComposer({ ticketId, requesterName, onPosted }) {
         data-placeholder={isPublic ? "Write a reply to the requester…"
                             : "Write an internal note…"}
         onPaste={onPaste}
-        onInput={() => setEmpty(!editorRef.current?.textContent.trim())}
-        onKeyDown={stop}
+        onInput={() => {
+          setEmpty(!editorRef.current?.textContent.trim());
+          setMentionQuery(isPublic ? null : readMentionQuery());
+        }}
+        onBlur={() => setTimeout(() => setMentionQuery(null), 150)}
+        onKeyDown={(e) => {
+          stop(e);
+          if (e.key === "Escape") setMentionQuery(null);
+        }}
       />
+
+      {matches.length > 0 && (
+        <ul className="mention-picker">
+          {matches.map((a) => (
+            <li key={a.id}>
+              <button type="button" onMouseDown={(e) => { e.preventDefault(); pickMention(a); }}>
+                <AtSign size={12} strokeWidth={2} /> {a.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {files.length > 0 && (
         <ul className="note-files">
@@ -173,6 +234,11 @@ export default function CommentComposer({ ticketId, requesterName, onPosted }) {
         <button className="note-tool" onClick={addLink} title="Add a link" type="button">
           <Link2 size={16} strokeWidth={1.8} />
         </button>
+        {!isPublic && (
+          <span className="note-hint">
+            <AtSign size={12} strokeWidth={2} /> type @ to notify someone
+          </span>
+        )}
         <button
           className="note-tool"
           onClick={() => fileRef.current?.click()}

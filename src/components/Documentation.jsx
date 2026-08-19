@@ -484,6 +484,27 @@ const TOPICS = [
           public reply is emailed and cannot be unsent, it asks once before sending. An
           internal note never does.
         </p>
+        <h4>Mentioning someone</h4>
+        <p>
+          Type <strong>@</strong> in an internal note and pick a name. The person is added
+          to the ticket as a <strong>follower</strong> in Zendesk, which emails them the
+          update and lets them see internal notes.
+        </p>
+        <p>
+          Worth knowing what this is underneath. Zendesk's real @mentions are a feature of
+          its own agent interface with no documented API, so the hub cannot create one.
+          Followers reach the same outcome by the route that <em>is</em> supported: the
+          "@Name" you type is ordinary text, and the notification comes from the follower.
+          Someone reading the ticket in Zendesk sees the name and gets the email; what
+          they will not see is the blue mention chip Zendesk draws for its own.
+        </p>
+        <p>
+          Deleting the name from the note before sending removes the mention, and a public
+          reply offers no mentions at all, so an internal handle never travels out in an
+          email to a requester. Only the seven people on the Web Team list can be
+          mentioned, the same list that can be assigned work.
+        </p>
+
         <p>
           On the way out, <em>public</em> has to arrive as the literal value true.
           Anything else, including a missing field, posts an internal note. The safe

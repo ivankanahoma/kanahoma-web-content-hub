@@ -9,6 +9,11 @@
 // function still called that while posting public replies is how somebody eventually
 // emails a university stakeholder by mistake.
 //
+// Mentions are followers underneath. Zendesk's real @mentions are an agent-interface
+// feature with no documented API, but a follower is the same outcome by the supported
+// route: they are emailed the update and they see internal notes. The "@Name" text is
+// just text; the notification comes from the followers array.
+//
 // Same rules as assign-ticket otherwise: the caller's role is checked against their own
 // token, and nothing else on the ticket is touched.
 
@@ -34,6 +39,9 @@ Deno.serve(async (req) => {
     const ticketId = body.ticket_id;
     const attachments: Attachment[] = Array.isArray(body.attachments)
       ? body.attachments
+      : [];
+    const mentioned: number[] = Array.isArray(body.mentions)
+      ? [...new Set(body.mentions.map(Number).filter(Number.isFinite))]
       : [];
     if (!ticketId) return json({ error: "ticket_id is required" }, { status: 400 });
 
@@ -74,6 +82,26 @@ Deno.serve(async (req) => {
 
     const { data: client } = await db
       .from("clients").select("zendesk_subdomain").eq("id", ticket.client_id).single();
+
+    // Same curation as assigning: a request naming somebody outside the list is refused
+    // rather than quietly followed, since this decides who gets emailed.
+    let followers: { user_id: number; action: "put" }[] = [];
+    if (mentioned.length) {
+      const { data: agents } = await db
+        .from("zendesk_agents").select("id")
+        .eq("client_id", ticket.client_id)
+        .eq("assignable", true)
+        .in("id", mentioned);
+      const allowed = new Set((agents ?? []).map((a) => Number(a.id)));
+      const stranger = mentioned.find((id) => !allowed.has(id));
+      if (stranger != null) {
+        return json(
+          { error: "One of the people mentioned is not on the Web Team list." },
+          { status: 400 },
+        );
+      }
+      followers = mentioned.map((user_id) => ({ user_id, action: "put" as const }));
+    }
 
     const base = `https://${client.zendesk_subdomain}.zendesk.com`;
     const auth = "Basic " + btoa(
@@ -116,6 +144,7 @@ Deno.serve(async (req) => {
             public: isPublic,
             ...(uploadTokens.length ? { uploads: uploadTokens } : {}),
           },
+          ...(followers.length ? { followers } : {}),
         },
       }),
     });
@@ -178,7 +207,8 @@ Deno.serve(async (req) => {
 
     console.log("add-comment", JSON.stringify({
       ticket: ticketId, public: isPublic, by: profile.email,
-      attachments: uploadTokens.length, chars: noteText(html).length,
+      attachments: uploadTokens.length, followers: followers.length,
+      chars: noteText(html).length,
     }));
 
     return json({ ticket_id: ticketId, comment_id: posted?.id ?? null, public: isPublic });
