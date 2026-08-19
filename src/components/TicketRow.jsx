@@ -12,7 +12,7 @@ import {
 import { supabase } from "../lib/supabase";
 import { invokeFunction } from "../lib/invoke";
 import { fetchLastMessage } from "../lib/lastMessage";
-import { trimComment } from "../lib/emailBody";
+import { trimComment } from "../../supabase/functions/_shared/email-body.ts";
 import CommentComposer from "./CommentComposer";
 import {
   COMPLEXITY_LABEL,

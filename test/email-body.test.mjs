@@ -6,7 +6,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { trimComment } from "../src/lib/emailBody.js";
+import { trimComment } from "../supabase/functions/_shared/email-body.ts";
 
 const KELLI = `Hi team - question on these blogs - are you going to be able to publish all blogs that we've sent to your que all at once? Or will any be delayed? Please let us know - as we'd like to plan/schedule around that on upcoming/new blogs on our end.
 

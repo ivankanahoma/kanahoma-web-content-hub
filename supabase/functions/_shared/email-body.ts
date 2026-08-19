@@ -1,5 +1,9 @@
 // Trimming a ticket comment down to what somebody actually wrote.
 //
+// Lives here rather than in src/ because both sides need it: the row shows the trimmed
+// text, and the enrichment sends it. Duplicating the rules would mean the model and the
+// reader could disagree about what a message says.
+//
 // Most comments arrive by email, so they carry the whole reply chain and a signature
 // block behind the two useful sentences. A ticket where the last message is 1,000
 // characters of which 90% is quoted history is a ticket you stop reading.
@@ -32,7 +36,7 @@ const STREET = /\d{1,6}\s+\S.{0,40}\b(rd|road|st|street|ave|avenue|blvd|dr|drive
 const CITY_STATE_ZIP = /,\s*[A-Z]{2}\s*\|?\s*\d{5}/;
 
 /** A line that is contact details rather than something someone said. */
-function isContactLine(line) {
+function isContactLine(line: string) {
   const t = line.trim();
   if (!t) return false;
   if (EMAIL.test(t) || DOMAIN.test(t)) return true;
@@ -43,7 +47,7 @@ function isContactLine(line) {
 }
 
 /** Where the quoted chain begins, or -1. */
-function quotedStart(lines) {
+function quotedStart(lines: string[]) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (ORIGINAL_MESSAGE.test(line) || ON_WROTE.test(line) || QUOTE_MARKER.test(line)) {
@@ -63,7 +67,7 @@ function quotedStart(lines) {
  * Where the signature begins, or -1. A sign-off only counts when what follows it looks
  * like contact details, so "Thanks!" in the middle of a sentence-long message survives.
  */
-function signatureStart(lines) {
+function signatureStart(lines: string[]) {
   for (let i = lines.length - 1; i >= 0; i--) {
     if (!SIGN_OFF.test(lines[i].trim())) continue;
     const after = lines.slice(i + 1).map((l) => l.trim()).filter(Boolean);
@@ -72,7 +76,7 @@ function signatureStart(lines) {
   return -1;
 }
 
-export function trimComment(raw) {
+export function trimComment(raw: string) {
   const original = String(raw ?? "");
   let lines = original.split("\n");
 

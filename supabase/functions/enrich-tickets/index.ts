@@ -12,6 +12,7 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { json, preflight } from "../_shared/cors.ts";
+import { trimComment } from "../_shared/email-body.ts";
 
 const MODEL = "claude-sonnet-5";
 const BATCH_SIZE = 15;
@@ -239,11 +240,15 @@ function renderThread(
   timezone: string,
 ) {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: timezone });
+  // Signatures and quoted reply chains are stripped on the way in. They are more than
+  // half of what arrives by email, they cost tokens on every re-analysis, and quoted
+  // history is worse than useless here: it is old text the model can mistake for new.
   const lines = comments.map((c) => {
     const when = new Date(c.created_at).toLocaleDateString("en-CA", { timeZone: timezone });
     const who = c.author_side === "us" ? "OUR TEAM" : "REQUESTER";
     const kind = c.is_public ? "" : " (internal note)";
-    return `--- comment id ${c.id} | ${who}${kind} | ${when} | ${c.author_name ?? ""}\n${c.body}`;
+    const body = trimComment(c.body).text;
+    return `--- comment id ${c.id} | ${who}${kind} | ${when} | ${c.author_name ?? ""}\n${body}`;
   });
   return [
     `Today is ${today} (America/Los_Angeles).`,
@@ -352,14 +357,31 @@ Deno.serve(async (req) => {
   );
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
 
+  /**
+   * Re-analysing the whole queue costs about 70 cents, and a prompt change usually only
+   * affects a handful of tickets. `ticket_ids` narrows it to those; `force` ignores the
+   * content hash for that set, because the thread has not changed, the rules have.
+   *
+   * `preview` answers "how much would this cost" without spending anything. Left alone,
+   * every option defaults to the scheduled behaviour.
+   */
+  const options = await req.json().catch(() => ({}));
+  const onlyIds: number[] = Array.isArray(options.ticket_ids)
+    ? options.ticket_ids.map(Number).filter(Number.isFinite)
+    : [];
+  const force = options.force === true;
+  const preview = options.preview === true;
+
   const { data: client } = await db.from("clients").select("*").eq("slug", "cui").single();
 
   // enrichable_tickets already excludes solved tickets and requesters whose email domain
   // is off the allowlist, so junk never reaches the model.
-  const { data: tickets } = await db
+  let query = db
     .from("enrichable_tickets")
     .select("id, subject, description, zendesk_created_at")
     .eq("client_id", client!.id);
+  if (onlyIds.length) query = query.in("id", onlyIds);
+  const { data: tickets } = await query;
 
   const { data: existing } = await db
     .from("ticket_insights").select("ticket_id, content_hash");
@@ -379,8 +401,28 @@ Deno.serve(async (req) => {
     const hash = await sha256(
       ticket.subject + " " + (comments ?? []).map((c) => c.id + c.body).join(" "),
     );
-    if (hashByTicket.get(Number(ticket.id)) === hash) continue;
+    if (!force && hashByTicket.get(Number(ticket.id)) === hash) continue;
     pending.push({ ticket, comments: (comments ?? []) as CommentRow[], hash });
+  }
+
+  if (preview) {
+    // Priced from what this job has actually cost lately, not from a guess.
+    const { data: recent } = await db
+      .from("ai_usage").select("input_tokens, output_tokens")
+      .eq("job", "enrich-tickets")
+      .order("created_at", { ascending: false }).limit(50);
+    const sample = recent ?? [];
+    const perCall = sample.length
+      ? sample.reduce((sum, r) =>
+        sum + r.input_tokens * 2 / 1e6 + r.output_tokens * 10 / 1e6, 0) / sample.length
+      : 0.014;
+    return json({
+      preview: true,
+      considered: tickets?.length ?? 0,
+      would_analyse: pending.length,
+      estimated_usd: Number((pending.length * perCall).toFixed(2)),
+      runs_needed: Math.ceil(pending.length / BATCH_SIZE),
+    });
   }
 
   const batch = pending.slice(0, BATCH_SIZE);
@@ -448,6 +490,8 @@ Deno.serve(async (req) => {
   });
 
   const summary = {
+    scope: onlyIds.length ? `${onlyIds.length} named tickets` : "whole queue",
+    forced: force,
     analysed: batch.length - failures.length,
     failed: failures.length,
     remaining: Math.max(0, pending.length - batch.length),

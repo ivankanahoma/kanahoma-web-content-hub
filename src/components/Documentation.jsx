@@ -515,6 +515,13 @@ const TOPICS = [
           Reply drafts are generated only when you ask for one, and are never sent. You
           copy them into Zendesk yourself.
         </p>
+        <p>
+          What reaches the model is the <strong>trimmed</strong> thread: signatures and
+          quoted reply chains are stripped first. That is a third to a half fewer tokens on
+          an email-heavy ticket, and quoted history is worse than useless to it anyway,
+          being old text it can mistake for new. Whether a ticket needs re-reading at all
+          is still decided on the untouched text, so nothing goes stale.
+        </p>
 
         <h4>The two things the hub writes back</h4>
         <p>

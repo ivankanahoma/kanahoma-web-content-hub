@@ -222,6 +222,17 @@ sees an empty allowlist, classifies every requester as spam, and gets an empty q
   100%. All signal lives in free text. The hub does not mirror dead fields.
 - Comparing `updated_at` needs `Date.getTime()`, not string equality: Postgres renders
   `+00:00` where Zendesk sends `Z`.
+- **The model is sent trimmed comments.** `_shared/email-body.ts -> trimComment` strips
+  signatures and quoted reply chains before the thread reaches the prompt, which is 34-42%
+  fewer input tokens on the heaviest threads, measured. Quoted history is worse than
+  useless to the model: it is old text it can mistake for new. The **content hash is
+  computed over the raw body**, so a real change still triggers a re-analysis.
+- **A prompt change does not mean re-analysing everything.** `enrich-tickets` accepts
+  `{ticket_ids, force, preview}`. `preview` prices the run against what the job has
+  actually cost lately without spending anything; `ticket_ids` with `force` re-reads only
+  the tickets a rule change can plausibly affect. The whole queue is $0.89; one ticket is
+  $0.02. Four unnecessary full re-runs in one afternoon are what made 18 August cost
+  $3.72 against a $0.02-0.60 baseline.
 - **Comment bodies keep their newlines.** `stripHtml` used to collapse every run of
   whitespace, which ran the message, the signature and the quoted chain into one
   unbroken line: unreadable, and impossible to trim. `src/lib/emailBody.js -> trimComment`
