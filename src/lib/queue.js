@@ -46,6 +46,23 @@ export const STALLED_ACTIONS = {
   },
 };
 
+/** The three a person can set. `new` is Zendesk's word for "nobody has replied yet" and
+ *  `closed` is terminal and set by its automations, so neither is offered. */
+export const SETTABLE_STATUSES = [
+  { value: "open", label: "Open", hint: "Being worked on" },
+  { value: "pending", label: "Pending", hint: "Waiting on the requester" },
+  { value: "solved", label: "Solved", hint: "Done. Drops out of the queue after 7 days" },
+];
+
+/** Every status a ticket can be *in*, including the two nobody sets by hand. */
+export const STATUS_LABEL = {
+  new: "New",
+  open: "Open",
+  pending: "Pending",
+  solved: "Solved",
+  closed: "Closed",
+};
+
 export const COMPLEXITY_LABEL = { easy: "Easy", medium: "Medium", complex: "Complex" };
 export const EFFORT_LABEL = { fast: "Fast", time_consuming: "Time-consuming" };
 

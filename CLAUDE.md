@@ -31,19 +31,27 @@ Anthropic ─► enrich-tickets┘         ▲
   **Refresh** button runs the same two in the same order on demand, which is why both
   now answer the CORS preflight too.
 - **The SPA only reads.** Its writes are limited to hub-side judgements: VIP flags,
-  manual ETAs, keyword rules, schedules. The exceptions are `assign-ticket` and
-  `add-comment`, the only two things that reach Zendesk.
+  manual ETAs, keyword rules, schedules. The exceptions are `assign-ticket`,
+  `add-comment` and `set-ticket-status`, the only three things that reach Zendesk.
 
 ### Writing back to Zendesk
 
-`assign-ticket` and `add-comment` are the only functions that change anything in
-Zendesk. Edge Functions run
+`assign-ticket`, `add-comment` and `set-ticket-status` are the only functions that change
+anything in Zendesk. Edge Functions run
 as the service role and **bypass RLS entirely**, so a write endpoint cannot lean on it:
 every signed-in account, viewer and content editor included, reaches the same URL with a
 valid JWT. `_shared/auth.ts -> requireRole` verifies the caller's token with `getUser`
 (never by decoding it) and looks their role up with the service key, because a
 `content_editor` cannot read `app_users` at all and that is indistinguishable from having
-no role. Neither function touches anything else on the ticket.
+no role. None of them touches anything else on the ticket.
+
+`set-ticket-status` accepts **only** `open`, `pending` and `solved`, named in the function
+rather than passed through: `new` is Zendesk's word for "nobody has replied yet" and
+`closed` is terminal and set by its automations. It asks for no confirmation because
+solving is quiet and reversible — CUI's active triggers were read, and none notifies the
+requester on a status change; the reopen trigger notifies the assignee, which is correct.
+Reopening clears `solved_at`, or the 7-day grace window would drop a ticket out of the
+mirror while somebody is working on it.
 
 `add-comment` posts an internal note or a public reply, and turns @mentions into
 **followers**. Zendesk's real @mentions are an agent-interface feature with no documented

@@ -19,7 +19,9 @@ import {
   DUE_KIND_LABEL,
   EFFORT_LABEL,
   KNOWLEDGE_LABEL,
+  SETTABLE_STATUSES,
   STALLED_ACTIONS,
+  STATUS_LABEL,
   dueParts,
   zendeskUrl,
 } from "../lib/queue";
@@ -54,6 +56,8 @@ export default function TicketRow({
   const [lastMessage, setLastMessage] = useState(undefined); // undefined = not loaded
   const [showFullMessage, setShowFullMessage] = useState(false);
   const [picking, setPicking] = useState(false);
+  const [statusBusy, setStatusBusy] = useState(false);
+  const [pickingStatus, setPickingStatus] = useState(false);
 
   // Only fetch a stored draft once the row is actually opened.
   useEffect(() => {
@@ -139,6 +143,24 @@ export default function TicketRow({
       setProblem(e.message);
     }
     setAssignBusy(false);
+  }
+
+  /**
+   * Solving is quiet: no trigger on CUI's account emails the requester on a status
+   * change, and reopening is one click away, so this asks nothing and just does it.
+   */
+  async function setStatus(value) {
+    if (value === ticket.status) { setPickingStatus(false); return; }
+    setStatusBusy(true);
+    setProblem(null);
+    try {
+      setPickingStatus(false);
+      await invokeFunction("set-ticket-status", { ticket_id: ticket.id, status: value });
+      await onChanged?.();
+    } catch (e) {
+      setProblem(e.message);
+    }
+    setStatusBusy(false);
   }
 
   async function copyDraft() {
@@ -253,6 +275,39 @@ export default function TicketRow({
                 in six with no idea who was waiting. The VIP tag above already marks the
                 ones that jump the queue, so the name does not have to. */}
             <Pill icon={User}>{ticket.requester_name || "unknown"}</Pill>
+
+            {/* Status sits next to ownership: they are the two things you change
+                about a ticket without opening it. */}
+            {canEdit && (
+              pickingStatus ? (
+                <select
+                  className="assignee-select inline"
+                  autoFocus
+                  value={ticket.status}
+                  disabled={statusBusy}
+                  onClick={(e) => e.stopPropagation()}
+                  onBlur={() => setPickingStatus(false)}
+                  onChange={(e) => { e.stopPropagation(); setStatus(e.target.value); }}
+                  aria-label="Change the ticket status"
+                >
+                  {SETTABLE_STATUSES.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              ) : (
+                <button
+                  className={`pill as-button status-${ticket.status}`}
+                  onClick={(e) => { e.stopPropagation(); setPickingStatus(true); }}
+                  disabled={statusBusy}
+                  title={ticket.status === "new"
+                    ? "Nobody has replied yet. Change the status in Zendesk."
+                    : SETTABLE_STATUSES.find((o) => o.value === ticket.status)?.hint
+                      ?? "Change the status in Zendesk"}
+                >
+                  {statusBusy ? "Saving…" : STATUS_LABEL[ticket.status] ?? ticket.status}
+                </button>
+              )
+            )}
 
             {/* Ownership sits in the row rather than behind an expand, because an
                 unowned ticket is a thing to fix while scanning, not while reading. */}

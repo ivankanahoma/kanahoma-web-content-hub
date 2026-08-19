@@ -523,9 +523,22 @@ const TOPICS = [
           is still decided on the untouched text, so nothing goes stale.
         </p>
 
-        <h4>The two things the hub writes back</h4>
+        <h4>The three things the hub writes back</h4>
         <p>
-          Two things write back. <strong>Assigning a ticket</strong> is the first: pick
+          <strong>Changing the status</strong> is the third. Open, pending and solved are
+          settable from the row. <em>New</em> is Zendesk's own word for "nobody has replied
+          yet", so it is shown but never offered, and <em>closed</em> is terminal and set
+          by Zendesk's automations rather than by people.
+        </p>
+        <p>
+          Solving asks for no confirmation, because it is quiet and reversible: CUI's live
+          triggers were checked, and none of them emails the requester on a status change.
+          Reopening a solved ticket does notify its assignee, which is Zendesk's own
+          trigger and the right behaviour. A solved ticket stays visible here for seven
+          days and then drops out, and reopening within that window puts it straight back.
+        </p>
+        <p>
+          Two other things write back. <strong>Assigning a ticket</strong> is the first: pick
           someone in the expanded ticket and the change goes to Zendesk immediately,
           because an assignee that only existed in the hub would disagree with the system
           of record within minutes.

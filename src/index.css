@@ -1302,3 +1302,17 @@ a { color: var(--k-green-700); }
 .pin-toggle.on:hover { color: var(--k-hellbender); background: transparent; }
 
 .tier-heading.pinned .n { background: #f8ebcf; color: #6f5312; }
+
+/* Status reads as state, not as a verdict, so it stays quiet until it is not Open. */
+.pill.as-button.status-open { color: var(--k-green-500); }
+.pill.as-button.status-pending {
+  border-color: var(--k-golden-hour);
+  color: #6f5312;
+  background: #fdf6e7;
+}
+.pill.as-button.status-solved {
+  border-color: var(--k-green-300);
+  color: var(--k-green-700);
+  background: var(--k-green-100);
+}
+.pill.as-button.status-new { border-style: dashed; color: var(--k-hellbender); }
