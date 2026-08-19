@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { invokeFunction } from "../lib/invoke";
+import { fetchLastMessage } from "../lib/lastMessage";
 import CommentComposer from "./CommentComposer";
 import {
   COMPLEXITY_LABEL,
@@ -64,30 +65,14 @@ export default function TicketRow({
    * public. The original request is deliberately not it: in Zendesk the first comment is
    * the ticket description, which the summary above already covers, so a ticket nobody
    * has answered shows nothing here rather than repeating itself.
-   *
-   * The autoresponder and merge notices are excluded too. They are not messages.
    */
   useEffect(() => {
     if (!expanded) return;
     let cancelled = false;
 
-    (async () => {
-      const rows = supabase
-        .from("ticket_comments")
-        .select("id, author_side, author_name, is_public, body, created_at")
-        .eq("ticket_id", ticket.id)
-        .neq("author_side", "system");
-
-      const [first, last] = await Promise.all([
-        rows.order("created_at", { ascending: true }).limit(1),
-        rows.order("created_at", { ascending: false }).limit(1),
-      ]);
-      if (cancelled) return;
-
-      const newest = last.data?.[0] ?? null;
-      const oldest = first.data?.[0] ?? null;
-      setLastMessage(newest && newest.id !== oldest?.id ? newest : null);
-    })();
+    fetchLastMessage(supabase, ticket.id)
+      .then((row) => { if (!cancelled) setLastMessage(row); })
+      .catch(() => { if (!cancelled) setLastMessage(null); });
 
     return () => { cancelled = true; };
   }, [expanded, ticket.id]);
