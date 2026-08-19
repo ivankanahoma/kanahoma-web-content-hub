@@ -597,7 +597,7 @@ export default function App() {
                 </select>
 
                 {filtersOn > 0 && (
-                  <button className="chip" onClick={clearFilters}>
+                  <button className="chip action" onClick={clearFilters}>
                     Clear {filtersOn} filter{filtersOn === 1 ? "" : "s"}
                   </button>
                 )}

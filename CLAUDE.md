@@ -32,11 +32,11 @@ Anthropic ─► enrich-tickets┘         ▲
   now answer the CORS preflight too.
 - **The SPA only reads.** Its writes are limited to hub-side judgements: VIP flags,
   manual ETAs, keyword rules, schedules. The exceptions are `assign-ticket` and
-  `add-internal-note`, the only two things that reach Zendesk.
+  `add-comment`, the only two things that reach Zendesk.
 
 ### Writing back to Zendesk
 
-`assign-ticket` and `add-internal-note` are the only functions that change anything in
+`assign-ticket` and `add-comment` are the only functions that change anything in
 Zendesk. Edge Functions run
 as the service role and **bypass RLS entirely**, so a write endpoint cannot lean on it:
 every signed-in account, viewer and content editor included, reaches the same URL with a
@@ -45,9 +45,14 @@ valid JWT. `_shared/auth.ts -> requireRole` verifies the caller's token with `ge
 `content_editor` cannot read `app_users` at all and that is indistinguishable from having
 no role. Neither function touches anything else on the ticket.
 
-`add-internal-note` posts **internal notes only**: `public: false` is a constant in the
-function, never a request parameter, so no path through the page can turn a note into a
-reply to the requester. The composer is a `contenteditable`, so its HTML is whatever the
+`add-comment` posts an internal note or a public reply. **`public` must arrive as the
+literal boolean `true`** — a missing field, `"true"`, or any other truthy value posts an
+internal note, so the safe outcome is the one you get by accident. The function was
+renamed from `add-internal-note` when public replies were added: a function still called
+that while emailing requesters is how somebody eventually sends the wrong thing. A public
+reply also re-derives the ticket's reply state (`last_reply_by`, `trailing_agent_messages`
+and the rest) on the spot, because it flips waiting-on-us to waiting-on-them and the queue
+is what you look at next. The composer is a `contenteditable`, so its HTML is whatever the
 browser produced on paste; `_shared/note-html.ts` keeps it to a dozen tags and drops any
 href that is not plainly `http(s):` or `mailto:`. It is unit-tested in Node — the file is
 plain enough that `node --test` strips its types — because a sanitiser nobody tests is a

@@ -1143,3 +1143,39 @@ a { color: var(--k-green-700); }
 .note-tool:hover { background: #f2e4c6; color: #6f5312; }
 .note-send { padding: 5px 12px; font-size: 13px; }
 .note-posted { font-size: 12px; color: var(--k-green-700); font-weight: 600; }
+
+/* Clearing the filters is an action, not another toggle, so it reads as a button. */
+.chip.action {
+  background: var(--k-green-700);
+  border-color: var(--k-green-700);
+  color: var(--k-white);
+  font-weight: 600;
+}
+.chip.action:hover { background: var(--k-green-500); border-color: var(--k-green-500); }
+
+.note-switch { padding-bottom: 2px; }
+.note-switch .chip { padding: 3px 9px; font-size: 12px; border-radius: 6px; }
+.note-switch .chip:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.note-switch .chip:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.note-switch .chip[aria-pressed="true"] {
+  background: #6f5312;
+  border-color: #6f5312;
+  color: var(--k-white);
+}
+
+/* Public mode drops the cream entirely. The colour is what you notice when you are not
+   reading, so it has to be the thing that changes, not just the label. */
+.note-composer.is-public {
+  background: var(--k-surface);
+  border-color: var(--k-green-500);
+  box-shadow: inset 3px 0 0 var(--k-green-700);
+}
+.note-composer.is-public header { color: var(--k-green-700); }
+.note-composer.is-public .note-scope { color: var(--k-green-700); font-weight: 600; }
+.note-composer.is-public .note-editor:empty::before { color: var(--k-green-300); }
+.note-composer.is-public .note-switch .chip[aria-pressed="true"] {
+  background: var(--k-green-700);
+  border-color: var(--k-green-700);
+}
+.note-composer.is-public .note-tool:hover { background: var(--k-green-100); }
+.note-composer.is-public .note-files li { background: var(--k-bg); color: var(--k-text-muted); }

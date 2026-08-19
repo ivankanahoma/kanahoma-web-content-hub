@@ -1,13 +1,16 @@
-// Posts an internal note to a Zendesk ticket.
+// Posts a comment to a Zendesk ticket: an internal note, or a public reply.
 //
-// Internal only, and that is enforced here rather than trusted from the request: the
-// body cannot ask for a public reply. A note that reached the requester by accident
-// would be a different kind of mistake entirely, so `public` is a constant, not a
-// parameter.
+// A public reply is emailed to the requester and cannot be unsent, so `public` is never
+// inferred and never defaults. It has to arrive as the literal boolean `true`; anything
+// else, including a missing field or the string "true", is treated as an internal note.
+// The safe value is the one you get by accident.
 //
-// The second and last thing the hub writes to Zendesk. Same rules as assign-ticket: the
-// caller's role is checked against their own token, and nothing else on the ticket is
-// touched.
+// The name says both things on purpose. This started life as add-internal-note, and a
+// function still called that while posting public replies is how somebody eventually
+// emails a university stakeholder by mistake.
+//
+// Same rules as assign-ticket otherwise: the caller's role is checked against their own
+// token, and nothing else on the ticket is touched.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -34,9 +37,15 @@ Deno.serve(async (req) => {
       : [];
     if (!ticketId) return json({ error: "ticket_id is required" }, { status: 400 });
 
+    // Strictly `true`, not truthy: "false", 1 and "yes" all mean internal here.
+    const isPublic = body.public === true;
+
     const html = sanitizeNoteHtml(body.html);
     if (!noteText(html) && !attachments.length) {
-      return json({ error: "The note is empty." }, { status: 400 });
+      return json(
+        { error: isPublic ? "The reply is empty." : "The note is empty." },
+        { status: 400 },
+      );
     }
 
     let total = 0;
@@ -104,7 +113,7 @@ Deno.serve(async (req) => {
         ticket: {
           comment: {
             html_body: html || " ",
-            public: false, // never a parameter
+            public: isPublic,
             ...(uploadTokens.length ? { uploads: uploadTokens } : {}),
           },
         },
@@ -113,8 +122,11 @@ Deno.serve(async (req) => {
 
     if (!res.ok) {
       const detail = await res.text();
-      console.error("zendesk note", res.status, detail);
-      return json({ error: `Zendesk refused the note (${res.status}).` }, { status: 502 });
+      console.error("zendesk comment", res.status, detail);
+      return json(
+        { error: `Zendesk refused the ${isPublic ? "reply" : "note"} (${res.status}).` },
+        { status: 502 },
+      );
     }
 
     const payload = await res.json();
@@ -131,24 +143,48 @@ Deno.serve(async (req) => {
         author_id: payload.audit?.author_id ?? null,
         author_name: profile.full_name ?? profile.email,
         author_side: "us",
-        is_public: false,
+        is_public: isPublic,
         body: noteText(html),
         created_at: payload.audit?.created_at ?? new Date().toISOString(),
       });
-      await db.from("tickets")
-        .update({ zendesk_updated_at: payload.ticket?.updated_at ?? new Date().toISOString() })
-        .eq("id", ticketId);
+      // A public reply moves the ticket from waiting-on-us to waiting-on-them, and the
+      // queue is exactly what you look at right after sending one. Re-derive the reply
+      // state here instead of leaving the row lying until the next sync.
+      const { data: thread } = await db
+        .from("ticket_comments")
+        .select("author_side, is_public, created_at")
+        .eq("ticket_id", ticketId)
+        .eq("is_public", true)
+        .neq("author_side", "system")
+        .order("created_at");
+
+      const visible = thread ?? [];
+      let trailing = 0;
+      for (let i = visible.length - 1; i >= 0; i--) {
+        if (visible[i].author_side !== "us") break;
+        trailing++;
+      }
+
+      await db.from("tickets").update({
+        zendesk_updated_at: payload.ticket?.updated_at ?? new Date().toISOString(),
+        first_agent_reply_at:
+          visible.find((c) => c.author_side === "us")?.created_at ?? null,
+        last_public_comment_at: visible.at(-1)?.created_at ?? null,
+        last_reply_by: visible.at(-1)?.author_side ?? null,
+        public_comment_count: visible.length,
+        trailing_agent_messages: trailing,
+      }).eq("id", ticketId);
     }
 
-    console.log("add-internal-note", JSON.stringify({
-      ticket: ticketId, by: profile.email, attachments: uploadTokens.length,
-      chars: noteText(html).length,
+    console.log("add-comment", JSON.stringify({
+      ticket: ticketId, public: isPublic, by: profile.email,
+      attachments: uploadTokens.length, chars: noteText(html).length,
     }));
 
-    return json({ ticket_id: ticketId, comment_id: posted?.id ?? null });
+    return json({ ticket_id: ticketId, comment_id: posted?.id ?? null, public: isPublic });
   } catch (e) {
     if (e instanceof Denied) return json({ error: e.message }, { status: e.status });
-    console.error("add-internal-note", e);
-    return json({ error: "Could not post the note." }, { status: 500 });
+    console.error("add-comment", e);
+    return json({ error: "Could not post the comment." }, { status: 500 });
   }
 });

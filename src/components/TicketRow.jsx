@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { invokeFunction } from "../lib/invoke";
-import InternalNote from "./InternalNote";
+import CommentComposer from "./CommentComposer";
 import {
   COMPLEXITY_LABEL,
   DUE_KIND_LABEL,
@@ -405,7 +405,13 @@ export default function TicketRow({
 
           {problem && <p className="inline-error">{problem}</p>}
 
-          {canEdit && <InternalNote ticketId={ticket.id} onPosted={onChanged} />}
+          {canEdit && (
+            <CommentComposer
+              ticketId={ticket.id}
+              requesterName={ticket.requester_name}
+              onPosted={onChanged}
+            />
+          )}
 
           <div className="ticket-actions">
             <a

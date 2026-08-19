@@ -469,19 +469,36 @@ const TOPICS = [
           of record within minutes.
         </p>
         <p>
-          The second is the <strong>internal note</strong> composer, which sits open
-          inside an expanded ticket rather than behind a button. It posts only internal
-          notes: <em>public</em> is a constant in the function, not something the page can
-          ask for, so this cannot become a reply to the requester by accident. The cream
-          styling is copied from Zendesk deliberately, so the box is recognisable before
-          the label is read. Links and attachments are supported, up to 5&nbsp;MB a file
-          and 8&nbsp;MB in total.
+          The second is the <strong>comment composer</strong>, which sits open inside an
+          expanded ticket rather than behind a button. It starts on{" "}
+          <strong>Internal note</strong> and says so three times over: the switch, the
+          cream Zendesk colouring, and the button, which reads <em>Post note</em>.
+          Links and attachments are supported, up to 5&nbsp;MB a file and 8&nbsp;MB in
+          total.
         </p>
         <p>
-          What you type is cleaned before it is sent. The composer is a rich text box, so
-          a paste from Word or a browser can carry markup with it; only the tags a note
-          needs survive, and an address that is not plainly a web or mail link loses its
-          href rather than travelling to Zendesk.
+          Switching to <strong>Public reply</strong> changes all three at once. The cream
+          goes, the header names the person who will receive it, and the button reads{" "}
+          <em>Send public reply</em>. The whole box changing colour is what someone
+          notices when they are not reading, which is the case that matters. Because a
+          public reply is emailed and cannot be unsent, it asks once before sending. An
+          internal note never does.
+        </p>
+        <p>
+          On the way out, <em>public</em> has to arrive as the literal value true.
+          Anything else, including a missing field, posts an internal note. The safe
+          outcome is the one you get by accident.
+        </p>
+        <p>
+          A public reply also moves the ticket from waiting on us to waiting on them, and
+          the queue is exactly what you look at next, so the reply state is recomputed
+          when the comment is posted rather than left stale until the next sync.
+        </p>
+        <p>
+          What you type is cleaned before it is sent, either way. The composer is a rich
+          text box, so a paste from Word or a browser can carry markup with it; only the
+          tags a comment needs survive, and an address that is not plainly a web or mail
+          link loses its href rather than travelling to Zendesk.
         </p>
         <p>
           Assigning is deliberately narrow. Only admins and managers can do either, and

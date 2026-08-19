@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Link2, Paperclip, PenLine, Send, X } from "lucide-react";
+import { Link2, Lock, Mail, Paperclip, Send, X } from "lucide-react";
 import { invokeFunction } from "../lib/invoke";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -20,13 +20,16 @@ const prettySize = (bytes) => bytes < 1024 * 1024
   : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 
 /**
- * An internal note composer, always open inside an expanded ticket rather than hidden
- * behind a button. It only ever writes internal notes: `public` is not a parameter here
- * or in the function, so this cannot become a reply to the requester by accident, which
- * is why the cream Zendesk styling is worth copying exactly. Someone glancing at it
- * should recognise what it is before they read the label.
+ * The comment composer, open inside an expanded ticket rather than behind a button.
+ *
+ * It starts on Internal note and says so in three places at once: the switch, the cream
+ * Zendesk colouring, and the Send button. Switching to Public reply changes all three,
+ * because the whole box changing colour is what someone notices when they are not
+ * reading. A public reply is emailed to the requester and cannot be unsent, so it also
+ * asks once before sending; an internal note never does.
  */
-export default function InternalNote({ ticketId, onPosted }) {
+export default function CommentComposer({ ticketId, requesterName, onPosted }) {
+  const [isPublic, setIsPublic] = useState(false);
   const editorRef = useRef(null);
   const fileRef = useRef(null);
   const [files, setFiles] = useState([]);
@@ -72,6 +75,12 @@ export default function InternalNote({ ticketId, onPosted }) {
   };
 
   async function send() {
+    if (isPublic) {
+      const who = requesterName ? `to ${requesterName}` : "to the requester";
+      if (!window.confirm(
+        `Send this as a public reply ${who}? They receive it by email and it cannot be ` +
+        `unsent.`)) return;
+    }
     setBusy(true);
     setProblem(null);
     try {
@@ -82,8 +91,8 @@ export default function InternalNote({ ticketId, onPosted }) {
         data: await readAsBase64(f),
       })));
 
-      await invokeFunction("add-internal-note", {
-        ticket_id: ticketId, html, attachments,
+      await invokeFunction("add-comment", {
+        ticket_id: ticketId, html, attachments, public: isPublic,
       });
 
       if (editorRef.current) editorRef.current.innerHTML = "";
@@ -101,11 +110,31 @@ export default function InternalNote({ ticketId, onPosted }) {
   const nothingToSend = empty && !files.length;
 
   return (
-    <div className="note-composer" onClick={stop}>
+    <div className={`note-composer ${isPublic ? "is-public" : ""}`} onClick={stop}>
       <header>
-        <PenLine size={14} strokeWidth={1.9} />
-        <strong>Internal note</strong>
-        <span className="note-scope">Not visible to the requester</span>
+        <span className="chip-pair note-switch">
+          <button
+            type="button"
+            className="chip"
+            aria-pressed={!isPublic}
+            onClick={() => setIsPublic(false)}
+          >
+            <Lock size={12} strokeWidth={2} /> Internal note
+          </button>
+          <button
+            type="button"
+            className="chip"
+            aria-pressed={isPublic}
+            onClick={() => setIsPublic(true)}
+          >
+            <Mail size={12} strokeWidth={2} /> Public reply
+          </button>
+        </span>
+        <span className="note-scope">
+          {isPublic
+            ? `Emailed to ${requesterName || "the requester"}`
+            : "Not visible to the requester"}
+        </span>
       </header>
 
       <div
@@ -115,7 +144,8 @@ export default function InternalNote({ ticketId, onPosted }) {
         role="textbox"
         aria-multiline="true"
         aria-label="Internal note"
-        data-placeholder="Write an internal note…"
+        data-placeholder={isPublic ? "Write a reply to the requester…"
+                            : "Write an internal note…"}
         onPaste={onPaste}
         onInput={() => setEmpty(!editorRef.current?.textContent.trim())}
         onKeyDown={stop}
@@ -154,7 +184,11 @@ export default function InternalNote({ ticketId, onPosted }) {
         <input ref={fileRef} type="file" multiple hidden onChange={onPick} />
 
         <span className="grow">
-          {posted && <span className="note-posted">Posted to Zendesk</span>}
+          {posted && (
+            <span className="note-posted">
+              {isPublic ? "Reply sent" : "Note posted"}
+            </span>
+          )}
           {problem && <span className="inline-error">{problem}</span>}
         </span>
 
@@ -164,7 +198,8 @@ export default function InternalNote({ ticketId, onPosted }) {
           disabled={busy || nothingToSend}
           type="button"
         >
-          <Send size={13} strokeWidth={2} /> {busy ? "Sending…" : "Send"}
+          <Send size={13} strokeWidth={2} />
+          {busy ? "Sending…" : isPublic ? "Send public reply" : "Post note"}
         </button>
       </footer>
     </div>
