@@ -50,7 +50,7 @@ export default function CommentComposer({
     if (!selection?.focusNode) return null;
     const upToCaret = String(selection.focusNode.textContent ?? "")
       .slice(0, selection.focusOffset);
-    const match = /(?:^|\s)@([\w.\-]*)$/.exec(upToCaret);
+    const match = /(?:^|\s)@([\w.-]*)$/.exec(upToCaret);
     return match ? match[1] : null;
   }
 

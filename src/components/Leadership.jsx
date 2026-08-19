@@ -28,18 +28,6 @@ function median(values) {
  * carries its state through a coloured rule and its label, never through the number.
  */
 function Stat({ icon: Icon, label, value, hint, alarm }) {
-  /**
-   * What has been tagged onto one person. Followers are what Zendesk's own @mentions
-   * create, so this is "things somebody wanted you to see", whether the tag came from
-   * the hub or from Zendesk directly.
-   */
-  const tagged = useMemo(() => {
-    if (!taggedFor?.agentId) return [];
-    return (tickets ?? [])
-      .filter((t) => (t.follower_ids ?? []).map(String).includes(String(taggedFor.agentId)))
-      .sort((a, b) => a.tier - b.tier || (b.age_days ?? 0) - (a.age_days ?? 0));
-  }, [tickets, taggedFor]);
-
   return (
     <div className={`stat ${alarm ? "alarm" : ""}`}>
       <div className="stat-label">
@@ -70,6 +58,18 @@ function BarRow({ label, count, total, fill }) {
 }
 
 export default function Leadership({ tickets, subdomain, taggedFor }) {
+  /**
+   * What has been tagged onto one person. Followers are what Zendesk's own @mentions
+   * create, so this is "things somebody wanted you to see", whether the tag came from
+   * the hub or from Zendesk directly.
+   */
+  const tagged = useMemo(() => {
+    if (!taggedFor?.agentId) return [];
+    return (tickets ?? [])
+      .filter((t) => (t.follower_ids ?? []).map(String).includes(String(taggedFor.agentId)))
+      .sort((a, b) => a.tier - b.tier || (b.age_days ?? 0) - (a.age_days ?? 0));
+  }, [tickets, taggedFor]);
+
   const m = useMemo(() => {
     const rows = tickets ?? [];
     const overdue = rows.filter((t) => t.hours_to_due != null && t.hours_to_due < 0);
