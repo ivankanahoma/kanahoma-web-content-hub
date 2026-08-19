@@ -229,10 +229,10 @@ a { color: var(--k-green-700); }
   color: var(--k-text-muted);
 }
 
+/* The heading is the control that collapses its group, so it is a real button inside a
+   real heading: the accordion pattern, not a div with a click handler. */
 .tier-heading {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+  margin: 0;
   padding: 24px 0 8px;
   position: sticky;
   /* Set from the toolbar's measured height; the fallback covers the first paint. */
@@ -240,8 +240,26 @@ a { color: var(--k-green-700); }
   background: var(--k-bg);
   z-index: 10;
 }
-.tier-heading h2 {
-  margin: 0;
+.group-toggle {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.group-toggle .chev {
+  align-self: center;
+  flex: 0 0 auto;
+  color: var(--k-green-300);
+  transition: transform 120ms ease;
+}
+.tier-heading.collapsed .chev { transform: rotate(-90deg); }
+.group-toggle:hover .chev { color: var(--k-green-700); }
+
+.tier-heading .group-label {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -258,11 +276,15 @@ a { color: var(--k-green-700); }
 }
 .tier-heading .hint { font-size: 12px; color: var(--k-text-muted); }
 
-.tier-heading.critical h2 { color: var(--k-urgency-critical); }
-.tier-heading.high     h2 { color: #8a6a1f; }
-.tier-heading.medium   h2 { color: var(--k-green-700); }
-.tier-heading.normal   h2 { color: var(--k-green-500); }
-.tier-heading.muted    h2 { color: var(--k-green-300); }
+.tier-heading.critical .group-label { color: var(--k-urgency-critical); }
+.tier-heading.high     .group-label { color: #8a6a1f; }
+.tier-heading.medium   .group-label { color: var(--k-green-700); }
+.tier-heading.normal   .group-label { color: var(--k-green-500); }
+.tier-heading.muted    .group-label { color: var(--k-green-300); }
+.tier-heading.pinned   .group-label { color: var(--k-golden-hour); }
+
+/* Collapsed, the hint is noise: the label and the count are the whole story. */
+.tier-heading.collapsed .hint { display: none; }
 
 /* One hairline-separated list. Reads as a tool, not a stack of floating cards. */
 .ticket-list {
@@ -1279,5 +1301,4 @@ a { color: var(--k-green-700); }
 .pin-toggle.on { opacity: 1; color: var(--k-golden-hour); }
 .pin-toggle.on:hover { color: var(--k-hellbender); background: transparent; }
 
-.tier-heading.pinned h2 { color: var(--k-golden-hour); }
 .tier-heading.pinned .n { background: #f8ebcf; color: #6f5312; }

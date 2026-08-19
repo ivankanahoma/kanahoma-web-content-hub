@@ -83,6 +83,18 @@ const TOPICS = [
           the most overdue sits at the top.
         </p>
 
+        <h4>Closing a group</h4>
+        <p>
+          Every group heading is a control: click it and the group folds away, in any of
+          the three views. The count stays on the heading, so a closed group still tells
+          you how much is behind it rather than hiding the number along with the rows.
+        </p>
+        <p>
+          What you closed is remembered, and it is remembered per group rather than per
+          view, so closing <strong>Requested pre-launch</strong> does not also close
+          somebody's name over in By assignee.
+        </p>
+
         <h4>Pinning</h4>
         <p>
           The pin on a row puts a ticket in a <strong>Pinned</strong> group above

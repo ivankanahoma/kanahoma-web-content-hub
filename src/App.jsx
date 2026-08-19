@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Download, RefreshCw } from "lucide-react";
+import { ChevronDown, Download, RefreshCw } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import { invokeFunction } from "./lib/invoke";
 import { downloadCsv } from "./lib/csv";
@@ -26,6 +26,7 @@ import wordmark from "./assets/kanahoma-wordmark-green.png";
 
 const COLLAPSED_KEY = "hub.sidebarCollapsed";
 const FILTERS_KEY = "hub.queueFilters";
+const COLLAPSED_GROUPS_KEY = "hub.collapsedGroups";
 
 /**
  * How the queue was left last time. Filters are how you narrow 38 tickets to the six you
@@ -42,6 +43,17 @@ function loadFilters() {
   }
 }
 const SAVED = loadFilters();
+
+/** Which groups were left shut. Keys are unique per view, so collapsing "Overdue" does
+ *  not also collapse somebody's name in the by-assignee view. */
+function loadCollapsedGroups() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(COLLAPSED_GROUPS_KEY) ?? "[]");
+    return new Set(Array.isArray(saved) ? saved : []);
+  } catch {
+    return new Set();
+  }
+}
 
 export default function App() {
   const [session, setSession] = useState(undefined); // undefined = still checking
@@ -76,6 +88,7 @@ export default function App() {
   const [ageFilter, setAgeFilter] = useState(SAVED.ageFilter ?? "");
   const [launchFilter, setLaunchFilter] = useState(SAVED.launchFilter ?? "");
   const [refreshing, setRefreshing] = useState(null); // null | pulling | reading
+  const [collapsedGroups, setCollapsedGroups] = useState(loadCollapsedGroups);
   const [expandedId, setExpandedId] = useState(null);
   const [myAgentId, setMyAgentId] = useState(null);
   const [busyId, setBusyId] = useState(null);
@@ -110,6 +123,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(COLLAPSED_KEY, collapsed ? "1" : "0");
   }, [collapsed]);
+
+  useEffect(() => {
+    localStorage.setItem(COLLAPSED_GROUPS_KEY, JSON.stringify([...collapsedGroups]));
+  }, [collapsedGroups]);
 
   useEffect(() => {
     localStorage.setItem(FILTERS_KEY, JSON.stringify({
@@ -360,6 +377,13 @@ export default function App() {
     requesterFilter, complexityFilter, effortFilter, knowledgeFilter, ageFilter,
     launchFilter,
   ].filter(Boolean).length;
+
+  const toggleGroup = (key) => setCollapsedGroups((current) => {
+    const next = new Set(current);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    return next;
+  });
 
   const clearFilters = () => {
     setReopenedOnly(false); setNoEtaOnly(false); setNoReplyOnly(false);
@@ -650,14 +674,25 @@ export default function App() {
                 )}
                 {grouped.map((group) => {
                   const rows = group.rows;
+                  const collapsed = collapsedGroups.has(group.key);
                   return (
                     <section key={group.key}>
-                      <div className={`tier-heading ${group.tone}`}>
-                        <h2>{group.label}</h2>
-                        <span className="n">{rows.length}</span>
-                        <span className="hint">{group.hint}</span>
-                      </div>
-                      <div className="ticket-list">
+                      <h2 className={[
+                        "tier-heading", group.tone, collapsed ? "collapsed" : "",
+                      ].filter(Boolean).join(" ")}>
+                        <button
+                          className="group-toggle"
+                          aria-expanded={!collapsed}
+                          onClick={() => toggleGroup(group.key)}
+                          title={collapsed ? "Open this group" : "Close this group"}
+                        >
+                          <ChevronDown className="chev" size={15} strokeWidth={2} />
+                          <span className="group-label">{group.label}</span>
+                          <span className="n">{rows.length}</span>
+                          <span className="hint">{group.hint}</span>
+                        </button>
+                      </h2>
+                      <div className="ticket-list" hidden={collapsed}>
                         {rows.map((t) => (
                           <TicketRow
                             key={t.id}
