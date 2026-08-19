@@ -10,6 +10,7 @@ import {
 import { supabase } from "../lib/supabase";
 import { invokeFunction } from "../lib/invoke";
 import { fetchLastMessage } from "../lib/lastMessage";
+import { trimComment } from "../lib/emailBody";
 import CommentComposer from "./CommentComposer";
 import {
   COMPLEXITY_LABEL,
@@ -48,6 +49,7 @@ export default function TicketRow({
   const [problem, setProblem] = useState(null);
   const [assignBusy, setAssignBusy] = useState(false);
   const [lastMessage, setLastMessage] = useState(undefined); // undefined = not loaded
+  const [showFullMessage, setShowFullMessage] = useState(false);
   const [picking, setPicking] = useState(false);
 
   // Only fetch a stored draft once the row is actually opened.
@@ -78,6 +80,15 @@ export default function TicketRow({
   }, [expanded, ticket.id]);
 
   useEffect(() => { setEtaValue(ticket.eta_date ?? ""); }, [ticket.eta_date]);
+
+  // Most comments arrive by email, so the signature and the whole quoted chain come with
+  // them. Nothing is lost: the full text is a click away.
+  const trimmedMessage = lastMessage ? trimComment(lastMessage.body) : null;
+  const shownMessage = !trimmedMessage
+    ? null
+    : showFullMessage
+      ? { text: lastMessage.body, trimmed: true }
+      : trimmedMessage;
 
   async function generateDraft() {
     setDraftBusy(true);
@@ -434,7 +445,17 @@ export default function TicketRow({
                 </span>
                 <span className="muted">{formatRelative(lastMessage.created_at)}</span>
               </header>
-              <p>{lastMessage.body}</p>
+              <p>{shownMessage.text}</p>
+              {shownMessage.trimmed && (
+                <button
+                  className="link-button"
+                  onClick={() => setShowFullMessage((v) => !v)}
+                >
+                  {showFullMessage
+                    ? "Hide the signature and quoted replies"
+                    : "Show the full message"}
+                </button>
+              )}
             </section>
           )}
 

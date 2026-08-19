@@ -207,6 +207,12 @@ sees an empty allowlist, classifies every requester as spam, and gets an empty q
   100%. All signal lives in free text. The hub does not mirror dead fields.
 - Comparing `updated_at` needs `Date.getTime()`, not string equality: Postgres renders
   `+00:00` where Zendesk sends `Z`.
+- **Comment bodies keep their newlines.** `stripHtml` used to collapse every run of
+  whitespace, which ran the message, the signature and the quoted chain into one
+  unbroken line: unreadable, and impossible to trim. `src/lib/emailBody.js -> trimComment`
+  then cuts the quoted chain, the legal footer and the signature block at display time
+  only, so the full text is always still there behind a toggle. It halves what is on
+  screen across the queue.
 
 ## Dates
 

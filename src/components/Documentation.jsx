@@ -492,6 +492,18 @@ const TOPICS = [
           so "who can see this" reads the same whether you are reading or writing.
         </p>
         <p>
+          Most comments arrive by email, so they carry a signature block and the whole
+          quoted reply chain behind the two useful sentences. Those are trimmed off before
+          the message is shown. Across the queue that is 54% fewer characters on screen,
+          and on the worst offender it is 794 characters down to 252.
+        </p>
+        <p>
+          Nothing is thrown away. The full text stays in the database and the row offers
+          to show it, so a rule that trims too keenly costs a click rather than a message.
+          A sign-off keeps its own line, because "Thanks!" is something the person wrote;
+          what goes is the name, title, company and contact details underneath it.
+        </p>
+        <p>
           The original request is deliberately not shown. In Zendesk the first comment
           <em>is</em> the ticket description, which the summary at the top already covers,
           so a ticket nobody has answered yet shows nothing here rather than repeating

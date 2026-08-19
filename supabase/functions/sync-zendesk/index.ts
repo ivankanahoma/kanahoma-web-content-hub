@@ -142,9 +142,29 @@ function authorSide(
   return teamMemberIds.has(c.author_id) ? "us" : "requester";
 }
 
+/**
+ * Zendesk sends HTML. What we want is the text, with its line structure intact.
+ *
+ * This used to collapse every run of whitespace, newlines included, which turned each
+ * comment into a single unbroken line. That cost more than looks: a signature, a quoted
+ * reply chain and the message itself all ran together, so neither a reader nor a trimmer
+ * could tell where one ended and the next began.
+ */
 function stripHtml(s: string) {
-  return (s ?? "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ").trim();
+  return (s ?? "")
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\s*\/\s*(p|div|li|tr|h[1-6])\s*>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/[ \t]+/g, " ")
+    .replace(/[ \t]*\n[ \t]*/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 Deno.serve(async (req) => {
