@@ -150,6 +150,10 @@ Schema lives in `supabase/migrations/`, applied in filename order. Key tables:
   *can this be handed to someone new?* The two come apart often — "remove the hyperlinks
   below" is easy, fast and needs deep knowledge, because the requester never said which
   page.
+- `tickets.follower_ids` — agents tagged on a ticket. Zendesk returns them on the ticket
+  object the search already fetches, so mirroring them is free. Followers are what an
+  @mention creates, which is why Leadership can list "tagged" tickets without caring
+  whether the tag came from the hub or from Zendesk.
 - `ticket_etas` — append-only history of every date we promised. Latest wins.
 - `urgency_rules` — optional keyword overrides, evaluated by the view, so editing one
   re-ranks the queue instantly with no re-analysis and no tokens.

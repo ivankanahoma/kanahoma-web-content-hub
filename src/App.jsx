@@ -80,6 +80,7 @@ export default function App() {
   const [myAgentId, setMyAgentId] = useState(null);
   const [busyId, setBusyId] = useState(null);
   const [agents, setAgents] = useState([]);
+  const [manager, setManager] = useState(null);
 
   /**
    * The tier headings stick below the toolbar, and the toolbar's height changes with the
@@ -130,12 +131,15 @@ export default function App() {
     let cancelled = false;
 
     (async () => {
-      const [me, clientRow, queue, agents, done, acts, junk, people, rules, asana] =
+      const [me, clientRow, queue, agents, managers, done, acts, junk, people, rules,
+             asana] =
         await Promise.all([
         supabase.from("app_users").select("*").eq("id", session.user.id).maybeSingle(),
         supabase.from("clients").select("*").eq("slug", "cui").maybeSingle(),
         supabase.from("ticket_queue").select("*"),
         supabase.from("zendesk_agents").select("id, name, email, assignable").order("name"),
+        supabase.from("app_users").select("full_name, role, zendesk_agent_id")
+          .eq("role", "manager").limit(1),
         supabase.from("recently_resolved").select("*"),
         supabase.from("ticket_activity").select("*"),
         supabase.from("spam_tickets").select("*"),
@@ -162,6 +166,16 @@ export default function App() {
       // The picker offers the six people work is actually handed to, not the
       // fifteen the Zendesk group happens to carry.
       setAgents((agents.data ?? []).filter((a) => a.assignable));
+      // Leadership is the manager's landing page, so it shows what is tagged onto them.
+      const boss = managers.data?.[0] ?? null;
+      setManager(boss?.zendesk_agent_id
+        ? {
+          agentId: boss.zendesk_agent_id,
+          name: boss.full_name
+            ?? (agents.data ?? []).find((a) => a.id === boss.zendesk_agent_id)?.name
+            ?? null,
+        }
+        : null);
       setMyAgentId(
         (agents.data ?? []).find(
           (a) => a.email?.toLowerCase() === session.user.email?.toLowerCase(),
@@ -724,7 +738,7 @@ export default function App() {
             )}
 
             {section === "leadership" && (
-              <Leadership tickets={tickets} subdomain={subdomain} />
+              <Leadership tickets={tickets} subdomain={subdomain} taggedFor={manager} />
             )}
 
             {section === "docs" && <Documentation />}

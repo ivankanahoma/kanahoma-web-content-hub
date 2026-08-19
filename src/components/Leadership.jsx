@@ -28,6 +28,18 @@ function median(values) {
  * carries its state through a coloured rule and its label, never through the number.
  */
 function Stat({ icon: Icon, label, value, hint, alarm }) {
+  /**
+   * What has been tagged onto one person. Followers are what Zendesk's own @mentions
+   * create, so this is "things somebody wanted you to see", whether the tag came from
+   * the hub or from Zendesk directly.
+   */
+  const tagged = useMemo(() => {
+    if (!taggedFor?.agentId) return [];
+    return (tickets ?? [])
+      .filter((t) => (t.follower_ids ?? []).map(String).includes(String(taggedFor.agentId)))
+      .sort((a, b) => a.tier - b.tier || (b.age_days ?? 0) - (a.age_days ?? 0));
+  }, [tickets, taggedFor]);
+
   return (
     <div className={`stat ${alarm ? "alarm" : ""}`}>
       <div className="stat-label">
@@ -57,7 +69,7 @@ function BarRow({ label, count, total, fill }) {
   );
 }
 
-export default function Leadership({ tickets, subdomain }) {
+export default function Leadership({ tickets, subdomain, taggedFor }) {
   const m = useMemo(() => {
     const rows = tickets ?? [];
     const overdue = rows.filter((t) => t.hours_to_due != null && t.hours_to_due < 0);
@@ -131,6 +143,39 @@ export default function Leadership({ tickets, subdomain }) {
           <BarRow key={name} label={name} count={count} total={m.total} fill="#547059" />
         ))}
       </div>
+
+      {taggedFor?.agentId && (
+        <>
+          <h3 className="block-title">
+            Tagged {taggedFor.name ?? "you"}
+          </h3>
+          <p className="section-intro">
+            Open tickets where {taggedFor.name ?? "you are"} a follower in Zendesk, which
+            is what an @mention adds. Highest priority first.
+          </p>
+          {!tagged.length ? (
+            <div className="state">Nothing tagged right now.</div>
+          ) : (
+            <div className="plain-list">
+              {tagged.map((t) => (
+                <div className="plain-row" key={t.id}>
+                  <a className="id ticket-id" href={zendeskUrl(subdomain, t.id)}
+                     target="_blank" rel="noreferrer noopener" title="Open in Zendesk">
+                    #{t.id}
+                  </a>
+                  <span className="grow">{t.subject}</span>
+                  {t.critical_impact && <span className="tag critical">Critical</span>}
+                  <span className={`tag ${t.waiting_on === "us" ? "warn" : "quiet"}`}>
+                    {t.waiting_on === "us" ? "Waiting on us" : "Waiting on them"}
+                  </span>
+                  <span className="muted">{t.assignee_name ?? "unassigned"}</span>
+                  <span className="pill">{pluralDays(t.age_days)} old</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
       <h3 className="block-title">Replied, but no ETA given</h3>
       <p className="section-intro">

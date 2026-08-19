@@ -311,6 +311,29 @@ const TOPICS = [
     ),
   },
   {
+    id: "tagged",
+    title: "Tagged tickets",
+    body: (
+      <>
+        <p>
+          <strong>Leadership</strong> lists the open tickets the manager is tagged on.
+          Tagged means a <strong>follower</strong> in Zendesk, which is what an @mention
+          adds, so the list covers tags made from the hub and tags made in Zendesk
+          directly. Highest priority first, with who owns each one.
+        </p>
+        <p>
+          Followers arrive on the ticket that the sync already fetches, so keeping this
+          current costs no extra call to Zendesk.
+        </p>
+        <p>
+          It shows the manager's tags rather than the viewer's, because Leadership is the
+          manager's landing page. Which account that is comes from the hub's own roles,
+          not from a name written into the code.
+        </p>
+      </>
+    ),
+  },
+  {
     id: "knowledge",
     title: "Institutional knowledge",
     body: (

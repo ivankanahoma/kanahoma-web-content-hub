@@ -19,6 +19,7 @@ type Ticket = {
   requester_id: number | null;
   assignee_id: number | null;
   tags: string[];
+  follower_ids?: number[];
   created_at: string;
   updated_at: string;
 };
@@ -243,6 +244,8 @@ Deno.serve(async (req) => {
       requester_id: t.requester_id,
       assignee_id: t.assignee_id,
       tags: t.tags ?? [],
+      // Search returns these on the ticket already, so tagging costs no extra call.
+      follower_ids: t.follower_ids ?? [],
       reopens: reopens.get(t.id) ?? 0,
       zendesk_created_at: t.created_at,
       zendesk_updated_at: t.updated_at,
