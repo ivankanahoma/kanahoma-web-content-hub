@@ -49,7 +49,7 @@ export const STALLED_ACTIONS = {
 /** The three a person can set. `new` is Zendesk's word for "nobody has replied yet" and
  *  `closed` is terminal and set by its automations, so neither is offered. */
 export const SETTABLE_STATUSES = [
-  { value: "open", label: "Open", hint: "Being worked on" },
+  { value: "open", label: "Open", hint: "Still being worked on" },
   { value: "pending", label: "Pending", hint: "Waiting on the requester" },
   { value: "solved", label: "Solved", hint: "Done. Drops out of the queue after 7 days" },
 ];

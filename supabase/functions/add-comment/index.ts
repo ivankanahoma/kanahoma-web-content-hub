@@ -14,6 +14,10 @@
 // route: they are emailed the update and they see internal notes. The "@Name" text is
 // just text; the notification comes from the followers array.
 //
+// An optional `status` rides along in the same PUT, which is how Zendesk's own "submit
+// as" works. One request, so a note can never land with its status change lost: either
+// both apply or neither does.
+//
 // Same rules as assign-ticket otherwise: the caller's role is checked against their own
 // token, and nothing else on the ticket is touched.
 
@@ -47,6 +51,16 @@ Deno.serve(async (req) => {
 
     // Strictly `true`, not truthy: "false", 1 and "yes" all mean internal here.
     const isPublic = body.public === true;
+
+    // The same three set-ticket-status allows, and for the same reasons.
+    const SETTABLE = new Set(["open", "pending", "solved"]);
+    const status: string | null = body.status == null ? null : String(body.status);
+    if (status !== null && !SETTABLE.has(status)) {
+      return json(
+        { error: `Status must be one of ${[...SETTABLE].join(", ")}.` },
+        { status: 400 },
+      );
+    }
 
     const html = sanitizeNoteHtml(body.html);
     if (!noteText(html) && !attachments.length) {
@@ -145,6 +159,7 @@ Deno.serve(async (req) => {
             ...(uploadTokens.length ? { uploads: uploadTokens } : {}),
           },
           ...(followers.length ? { followers } : {}),
+          ...(status ? { status } : {}),
         },
       }),
     });
@@ -194,8 +209,17 @@ Deno.serve(async (req) => {
         trailing++;
       }
 
+      const appliedStatus = payload.ticket?.status ?? status;
       await db.from("tickets").update({
         zendesk_updated_at: payload.ticket?.updated_at ?? new Date().toISOString(),
+        ...(status
+          ? {
+            status: appliedStatus,
+            // Reopening has to clear this, or the 7 day grace window would drop the
+            // ticket out of the mirror while somebody is working on it.
+            solved_at: appliedStatus === "solved" ? new Date().toISOString() : null,
+          }
+          : {}),
         first_agent_reply_at:
           visible.find((c) => c.author_side === "us")?.created_at ?? null,
         last_public_comment_at: visible.at(-1)?.created_at ?? null,
@@ -206,12 +230,17 @@ Deno.serve(async (req) => {
     }
 
     console.log("add-comment", JSON.stringify({
-      ticket: ticketId, public: isPublic, by: profile.email,
+      ticket: ticketId, public: isPublic, status, by: profile.email,
       attachments: uploadTokens.length, followers: followers.length,
       chars: noteText(html).length,
     }));
 
-    return json({ ticket_id: ticketId, comment_id: posted?.id ?? null, public: isPublic });
+    return json({
+      ticket_id: ticketId,
+      comment_id: posted?.id ?? null,
+      public: isPublic,
+      status: payload.ticket?.status ?? null,
+    });
   } catch (e) {
     if (e instanceof Denied) return json({ error: e.message }, { status: e.status });
     console.error("add-comment", e);

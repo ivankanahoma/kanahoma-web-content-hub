@@ -53,8 +53,9 @@ requester on a status change; the reopen trigger notifies the assignee, which is
 Reopening clears `solved_at`, or the 7-day grace window would drop a ticket out of the
 mirror while somebody is working on it.
 
-`add-comment` posts an internal note or a public reply, and turns @mentions into
-**followers**. Zendesk's real @mentions are an agent-interface feature with no documented
+`add-comment` posts an internal note or a public reply, optionally setting the ticket's
+status in the same PUT — Zendesk's own "submit as", and one request so a note can never
+land with its status change lost. It turns @mentions into **followers**. Zendesk's real @mentions are an agent-interface feature with no documented
 API; a follower is the same outcome by the supported route, and CUI's account has
 `ticket_followers_allowed` and `follower_and_email_cc_collaborations` both on (checked
 against `/api/v2/account/settings.json`, not assumed). The `@Name` is plain text; the

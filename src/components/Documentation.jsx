@@ -607,6 +607,23 @@ const TOPICS = [
           mentioned, the same list that can be assigned work.
         </p>
 
+        <h4>Submitting as a status</h4>
+        <p>
+          Hovering the send button opens Zendesk's <strong>submit as</strong> menu:
+          <span style={{ whiteSpace: "nowrap" }}> Open, Pending, Solved</span>, in
+          Zendesk's own red, blue and grey. The button itself sends nothing; picking one
+          of the three posts the comment <em>and</em> sets that status.
+        </p>
+        <p>
+          Both travel to Zendesk in a single request, so a note can never land with its
+          status change lost. Either the whole submit applies or none of it does.
+        </p>
+        <p>
+          The colours are Zendesk's rather than the brand palette on purpose. The team
+          reads those three all day in Zendesk itself, and a private dialect for the same
+          three states would be one more thing to translate.
+        </p>
+
         <p>
           On the way out, <em>public</em> has to arrive as the literal value true.
           Anything else, including a missing field, posts an internal note. The safe

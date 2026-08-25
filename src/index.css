@@ -1303,16 +1303,86 @@ a { color: var(--k-green-700); }
 
 .tier-heading.pinned .n { background: #f8ebcf; color: #6f5312; }
 
-/* Status reads as state, not as a verdict, so it stays quiet until it is not Open. */
-.pill.as-button.status-open { color: var(--k-green-500); }
+/* Status uses Zendesk's own colours rather than the brand palette: red open, blue
+   pending, grey solved. The team reads these all day in Zendesk, and a private dialect
+   for the same three states would be one more thing to translate. */
+:root {
+  --status-open: #c8402f;
+  --status-pending: #2a6ebb;
+  --status-solved: #6b7770;
+}
+
+.pill.as-button.status-open,
+.pill.as-button.status-new {
+  border-color: var(--status-open);
+  color: var(--status-open);
+}
+.pill.as-button.status-new { border-style: dashed; }
 .pill.as-button.status-pending {
-  border-color: var(--k-golden-hour);
-  color: #6f5312;
-  background: #fdf6e7;
+  border-color: var(--status-pending);
+  color: var(--status-pending);
 }
 .pill.as-button.status-solved {
-  border-color: var(--k-green-300);
-  color: var(--k-green-700);
-  background: var(--k-green-100);
+  border-color: var(--status-solved);
+  color: var(--status-solved);
+  background: var(--k-bg);
 }
-.pill.as-button.status-new { border-style: dashed; color: var(--k-hellbender); }
+.pill.as-button.status-open:hover { border-color: var(--status-open); }
+.pill.as-button.status-pending:hover { border-color: var(--status-pending); }
+.pill.as-button.status-solved:hover { border-color: var(--status-solved); }
+
+/* Submit as: the trigger opens the menu, the menu sends. */
+.submit-as { position: relative; display: inline-flex; }
+.submit-chev { margin-left: 2px; transition: transform 120ms ease; }
+.submit-as.open .submit-chev { transform: rotate(180deg); }
+
+.submit-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  display: flex;
+  flex-direction: column;
+  min-width: 168px;
+  padding: 4px;
+  border: 1px solid var(--k-border);
+  border-radius: 8px;
+  background: var(--k-surface);
+  box-shadow: 0 8px 22px rgba(47, 73, 54, 0.16);
+  z-index: 30;
+}
+.submit-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+.submit-option .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.submit-option.status-open { color: var(--status-open); }
+.submit-option.status-open .dot { background: var(--status-open); }
+.submit-option.status-pending { color: var(--status-pending); }
+.submit-option.status-pending .dot { background: var(--status-pending); }
+.submit-option.status-solved { color: var(--status-solved); }
+.submit-option.status-solved .dot { background: var(--status-solved); }
+.submit-option:hover { background: var(--k-bg); }
+
+/* The gap the pointer crosses on the way to the menu, so it does not close underneath. */
+.submit-as::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 8px;
+}

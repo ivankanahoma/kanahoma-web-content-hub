@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
-import { AtSign, Link2, Lock, Mail, Paperclip, Send, X } from "lucide-react";
+import { AtSign, ChevronUp, Link2, Lock, Mail, Paperclip, X } from "lucide-react";
 import { invokeFunction } from "../lib/invoke";
+import { SETTABLE_STATUSES } from "../lib/queue";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 8 * 1024 * 1024;
@@ -41,6 +42,7 @@ export default function CommentComposer({
   const [problem, setProblem] = useState(null);
   const [posted, setPosted] = useState(false);
   const [empty, setEmpty] = useState(true);
+  const [submitOpen, setSubmitOpen] = useState(false);
 
   const stop = (e) => e.stopPropagation();
 
@@ -107,7 +109,7 @@ export default function CommentComposer({
     setFiles(next);
   };
 
-  async function send() {
+  async function send(status) {
     if (isPublic) {
       const who = requesterName ? `to ${requesterName}` : "to the requester";
       if (!window.confirm(
@@ -133,13 +135,14 @@ export default function CommentComposer({
 
       await invokeFunction("add-comment", {
         ticket_id: ticketId, html, attachments, public: isPublic,
-        mentions: stillMentioned,
+        mentions: stillMentioned, status,
       });
 
       if (editorRef.current) editorRef.current.innerHTML = "";
       setFiles([]);
       setMentioned([]);
       setEmpty(true);
+      setSubmitOpen(false);
       setPosted(true);
       setTimeout(() => setPosted(false), 2600);
       await onPosted?.();
@@ -258,15 +261,44 @@ export default function CommentComposer({
           {problem && <span className="inline-error">{problem}</span>}
         </span>
 
-        <button
-          className="button note-send"
-          onClick={send}
-          disabled={busy || nothingToSend}
-          type="button"
+        {/* Zendesk's "submit as": the status is chosen at the moment of sending, so the
+            two decisions that end a reply are one gesture rather than two. The trigger
+            posts nothing on its own; one of the three does. */}
+        <span
+          className={`submit-as ${submitOpen ? "open" : ""}`}
+          onMouseEnter={() => !nothingToSend && setSubmitOpen(true)}
+          onMouseLeave={() => setSubmitOpen(false)}
         >
-          <Send size={13} strokeWidth={2} />
-          {busy ? "Sending…" : isPublic ? "Send public reply" : "Post note"}
-        </button>
+          <button
+            className="button note-send"
+            type="button"
+            disabled={busy || nothingToSend}
+            aria-haspopup="true"
+            aria-expanded={submitOpen}
+            onClick={() => setSubmitOpen((v) => !v)}
+          >
+            {busy ? "Sending…" : isPublic ? "Send public reply" : "Post note"}
+            <ChevronUp size={13} strokeWidth={2} className="submit-chev" />
+          </button>
+
+          {submitOpen && !busy && (
+            <span className="submit-menu" role="menu">
+              {SETTABLE_STATUSES.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="menuitem"
+                  className={`submit-option status-${option.value}`}
+                  title={option.hint}
+                  onClick={() => send(option.value)}
+                >
+                  <span className="dot" />
+                  {option.label}
+                </button>
+              ))}
+            </span>
+          )}
+        </span>
       </footer>
     </div>
   );
