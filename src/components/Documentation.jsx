@@ -603,7 +603,7 @@ const TOPICS = [
         <p>
           Deleting the name from the note before sending removes the mention, and a public
           reply offers no mentions at all, so an internal handle never travels out in an
-          email to a requester. Only the seven people on the Web Team list can be
+          email to a requester. Only the eight people on the Web Team list can be
           mentioned, the same list that can be assigned work.
         </p>
 
@@ -631,7 +631,7 @@ const TOPICS = [
           what stops anyone.
         </p>
         <p>
-          The picker lists <strong>six people</strong>, not the fifteen in the Zendesk
+          The picker lists <strong>eight people</strong>, not the fifteen in the Zendesk
           group. The group also carries Kanahoma staff who no longer work this queue,
           outside contractors and CUI staff who happen to hold an agent seat; offering
           them is how a ticket ends up parked with somebody who is not looking at it. That

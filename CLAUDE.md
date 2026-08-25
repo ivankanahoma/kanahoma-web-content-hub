@@ -75,7 +75,7 @@ sanitiser nobody has checked. The posted comment is mirrored into `ticket_commen
 its real Zendesk id, so the thread is not missing it until the next sync and the later
 upsert is idempotent.
 
-Assignees come from `zendesk_agents.assignable`, a **hub-side curation of seven people**,
+Assignees come from `zendesk_agents.assignable`, a **hub-side curation of eight people**,
 not from group membership: the Zendesk group carries fifteen, including staff who no
 longer work this queue and outside contractors. Sync never names that column in its
 upsert, so the flag survives, and a new group member defaults to not assignable.
